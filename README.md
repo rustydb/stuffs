@@ -5,7 +5,7 @@ Various things I've drafted up for other various things, peruse to your hearts c
 ## Things of Stuffs
 
 ```javascript
-stuffs.forEach((stuff) => { console.log(stuff.whatIs())};
+stuffs.forEach((stuff) => { console.log( stuff.whatIs() ) };
 ```
 ```
 ├── html
