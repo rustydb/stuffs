@@ -1,0 +1,11 @@
+Names: Gavin Prentice (prent024) and Russell Bunch (bunc0035)
+
+Our code doesn't rely on a data structure, but rather recursively uses parse_file to locate the targets we need and run the commands in the correct order. 
+This is done in the following steps:
+
+
+1. Locate the target we are searching for (in the first call, this will be the target received from the command line, if none given defaults to "all")
+
+2. Find the dependencies after the ":" listed for each target and call parse_file with each dependency
+
+3. Execute any terminal commands following your target until reaching "end" or EOF

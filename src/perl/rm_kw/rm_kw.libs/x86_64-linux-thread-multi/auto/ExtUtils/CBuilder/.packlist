@@ -1,0 +1,16 @@
+/home/users/rbunch/.perl/lib/perl5/ExtUtils/CBuilder.pm
+/home/users/rbunch/.perl/lib/perl5/ExtUtils/CBuilder/Base.pm
+/home/users/rbunch/.perl/lib/perl5/ExtUtils/CBuilder/Platform/Unix.pm
+/home/users/rbunch/.perl/lib/perl5/ExtUtils/CBuilder/Platform/VMS.pm
+/home/users/rbunch/.perl/lib/perl5/ExtUtils/CBuilder/Platform/Windows.pm
+/home/users/rbunch/.perl/lib/perl5/ExtUtils/CBuilder/Platform/Windows/BCC.pm
+/home/users/rbunch/.perl/lib/perl5/ExtUtils/CBuilder/Platform/Windows/GCC.pm
+/home/users/rbunch/.perl/lib/perl5/ExtUtils/CBuilder/Platform/Windows/MSVC.pm
+/home/users/rbunch/.perl/lib/perl5/ExtUtils/CBuilder/Platform/aix.pm
+/home/users/rbunch/.perl/lib/perl5/ExtUtils/CBuilder/Platform/android.pm
+/home/users/rbunch/.perl/lib/perl5/ExtUtils/CBuilder/Platform/cygwin.pm
+/home/users/rbunch/.perl/lib/perl5/ExtUtils/CBuilder/Platform/darwin.pm
+/home/users/rbunch/.perl/lib/perl5/ExtUtils/CBuilder/Platform/dec_osf.pm
+/home/users/rbunch/.perl/lib/perl5/ExtUtils/CBuilder/Platform/os2.pm
+/home/users/rbunch/.perl/man/man3/ExtUtils::CBuilder.3pm
+/home/users/rbunch/.perl/man/man3/ExtUtils::CBuilder::Platform::Windows.3pm

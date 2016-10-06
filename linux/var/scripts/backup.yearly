@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# config
+trgt1="/media/luna/Babylon/dropbox_archive.yearly"
+# abort if any of the commands fail
+#set -e
+
+# setup
+todays=$(date +'%Y-%m-%d') # nicely sortable names for backups
+
+
+#### Jobs ####
+
+# root
+cd $trgt1
+tar -cvpzf dropbox_archive.${todays}.tar.gz --one-file-system /media/gaia/dropbox_archive > /var/log/backup/dropbox_archive.${todays} 2>&1
+to_delete1=$(ls -r | tail -n +3) # will keep the last backup
+rm -f $to_delete1
+

@@ -1,0 +1,43 @@
+Subject: Welcome to 4L!
+
+Welcome, $NAME!
+
+Your username is: $NEWUSER
+Your password is: $PASSWORD
+
+You will be asked to change your password after you log in. 
+
+You can use putty or MobaXterm to make a Secure Shell (ssh) to the server. Putty is more light weight, but MobaXterm does a lot of heavy lifting for you.
+
+Both applications have 'pen' drive versions for running them off a flash drive on any PC.
+
+--------------------------------------------------
+
+*SSH in and change your password before attempting to use any other services. If you have issues let me know at rdbunch93@gmail.com.*
+
+4L Server Info
+Main Host       : fruitloop
+Domain          : 4lambda.io
+Website         : www.4lambda.io (Currently up but under construction)
+FTP             : ftp://fruitloop.4lambda.io (Paste this into your web browser to download your files)
+SFTP            : sftp://fruitloop.4lambda.io (Use this to securely connect with FileZilla or another sFTP client)
+
+For an FTP client, I recommend FileZilla Client. It can also be installed to a flash drive.
+
+--------------------------------------------------
+
+To log in to the server, use the following command:
+> ssh $NEWUSER@fruitloop.4lambda.io
+
+If you want to run anything graphical, you need to "forward X" by using:
+
+$> # Linux
+$> ssh -XC $NEWUSER@fruitloop.4lambda.io
+$> # OS X
+$> ssh -YC $NEWUSER@fruitloop.4lambda.io
+
+The -X (or -Y) is to forward X11 (for opening windows remotely) and -p specifies the port number. The -C allows for compression and in theory should speed up rendering over slower connections.
+
+--------------------------------------------------
+
+News emails will be sent out occasionally when system downtime is planned, upgrades are coming in, or other news. Often times I will have a For the Curious (FTC) section with some more background info on things, for the curious folk. Example:

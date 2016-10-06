@@ -1,0 +1,6 @@
+These files are taken from PostgreSQL-9.1.2 and only the following changes are done.
+
+buf_internals.h:  line no 148
+buf_init.c:  line no 107, 108
+buf_mgr.c: line no 810
+freelist.c: line no 208, 214-229, 246-250

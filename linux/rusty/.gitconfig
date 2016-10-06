@@ -1,0 +1,10 @@
+[user]
+	name = Russell Bunch
+    email = rusty@4lambda.io
+[core]
+    editor = vim
+[color]
+    ui = auto
+    branch = auto
+    status = auto
+    diff = auto

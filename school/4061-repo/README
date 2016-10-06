@@ -1,0 +1,87 @@
+Testing PA4:
+
+Steps:
+1. Extract the code to be tested. Let the path of extracted code be PROJ_HOME.
+2. cd PROJ_HOME
+3. It will be checked in README if EC is implemented. Test cases will be executed accordingly wherever applicable.
+4. mkdir output (given as the argument to ./retrieve where output will generated). Please delete(rm -f output/*) the contents in this dir before executing a test case.
+5. The test data directories should be copied in current dir.
+
+-----------------------------------
+Test cases:
+
+TC1. num_threads default value test - 5 points
+Command: ./retrieve test_data1/clients.txt output &
+
+Expected:
+Command "cat /proc/$!/status" will be used to check number of threads created. If they are 6 (5 child threads + 1 main thread), you pass this test case.
+Output and log will not be checked for this test case.
+
+-----------------------------------
+
+TC2. num_threads default value test user specified - 5 points
+Command: ./retrieve test_data1/clients.txt output 6 &
+Output and log will not be checked for this test case.
+
+Expected:
+Command "cat /proc/$!/status" will be used to check number of threads created. If they are 7 (6 child threads + 1 main thread), you pass this test case.
+Output will not be checked for this test case.
+
+-----------------------------------
+
+TC3. Test Synchronization - 40 points
+Command: 
+./retrieve test_data1/clients.txt output 5 &
+If above fails: ./retrieve test_data1/clients.txt output &
+If above fails and EC implemented: ./retrieve test_data1/clients.txt output 5 10 &
+
+Expected: Output should match and log.txt should have same number of clients as in clients.txt.
+If TC1 and TC2 fail, 'cat /proc/$!/status' should show more than 3 threads.
+
+-----------------------------------
+
+TC4. Test with 1000(approx.) clients - 25 points
+Command: 
+./retrieve test_data2/clients.txt output 100 &
+If above fails: ./retrieve test_data2/clients.txt output & (this will take some time as only 5 threads will be created by default)
+If above fails and EC implemented: ./retrieve test_data2/clients.txt output 100 1000 &
+
+Expected: Output should match and log.txt should have same number of clients as in clients.txt.
+If TC1 and TC2 fail, 'cat /proc/$!/status' should show more than 3 threads.
+
+-----------------------------------
+
+TC5. Test with bogus client path in clients.txt - 5 points
+Command:
+./retrieve test_data1/clients1.txt output 5 &
+If above fails: ./retrieve test_data1/clients1.txt output &
+If above fails and EC implemented: ./retrieve test_data1/clients1.txt output 5 10 &
+
+Expected: Output should match and log.txt should have same number of clients as in clients.txt.
+If TC1 and TC2 fail, 'cat /proc/$!/status' should show more than 3 threads.
+
+-----------------------------------
+
+TC6. Extra credit test case - 10 points
+Different combinations will be tried such that num_thread < queue_size < num_clients.
+Command: ./retrieve test_data1/clients.txt output 2 4 &
+
+Expected: Will be failed if TC3 fails.
+Message: "INFO: Queue full. Waiting to add more clients." should be printed on std out or in log.
+If TC1 and TC2 fail, 'cat /proc/$!/status' should show more than 3 threads.
+
+-----------------------------------
+
+These could be the reasons for lost points:
+1. Not mentioned in README: if extra credit is implemented: - 3 points.
+2. README says EC implemented but was not implemented (found out by code review or any other way): - 110 points (or the points earned).
+
+-----------------------------------
+
+Credits summary:
+TC1: 5
+TC2: 5
+TC3: 40
+TC4: 25
+TC5: 5
+TC6: 10

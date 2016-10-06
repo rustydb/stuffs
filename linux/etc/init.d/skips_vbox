@@ -1,0 +1,41 @@
+#!/bin/sh
+#description: VirtualBox
+
+
+start() {
+    echo -e -n "Starting skips\n"
+    /usr/bin/VBoxManage startvm "skips" --type headless
+}
+
+save() {
+    echo -n "Saving skips State...\n"
+    /usr/bin/VBoxManage controlvm "skips" savestate
+}
+
+stop() {
+    echo -n "Shutting down skips...\n"
+    /usr/bin/VBoxManage controlvm "skips" poweroff
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    pause)
+        save
+        ;;
+    stop)
+        stop
+        ;;
+    restart|reload)
+        stop
+        start
+        ;;
+    *)
+        echo $"Usage: $0 {start|pause|stop|restart}"
+        exit 1
+        ;;
+esac
+
+exit 0
+

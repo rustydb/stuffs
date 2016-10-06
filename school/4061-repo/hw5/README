@@ -1,0 +1,16 @@
+/* CSci4061 S2013 PA5
+section: 4
+section: 6
+date: 05/01/2014
+name: Russell Bunch, Gavin Prentice (for partner)
+id: 4352554, 4336808 * Extra credit:
+implemented*/
+
+Simply run "make client" and "make server" to build the to decryption programs. The server starts listening on
+which ever port argv[1] is. The client connects to the specified server/port and the files needing decryption (argv[1-3]
+respectivly).
+
+The client reads the files line-by-line into the socket. The socket queues up the lines and decrypted them in whichever
+thread is handling said client. If multiple clients connect, no problem, that's what the other threads are for! Once
+each line is decrypted it is piped back to the client in oder to be printed to *txt.decrypted. Voila, done with 4061
+assignments!

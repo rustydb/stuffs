@@ -1,0 +1,2554 @@
+#!/usr/bin/perl
+
+#
+# Script written by Russell Bunch. Modules consolidated into one file with proper
+# credit given for use of script within Cray.
+# Each module is defined in the beginning section. Tscan starts at the main package
+#
+
+
+ ##############################################################################
+ # Copyright information for Cray is included at the tail of this executable. #
+ ##############################################################################
+
+
+
+###############################################################################
+# INCLUDED MODULES                                                            #
+#                                                                             #
+# The following three packages prior to 'package main' were aquired from CPAN #
+# and their respective use copyright is included.                             #
+###############################################################################
+
+# Term::ANSIColor -- Color screen output using ANSI escape sequences.
+#
+# Copyright 1996, 1997, 1998, 2000, 2001, 2002, 2005, 2006, 2008, 2009, 2010,
+#     2011, 2012, 2013, 2014 Russ Allbery <rra@cpan.org>
+# Copyright 1996 Zenin
+# Copyright 2012 Kurt Starsinic <kstarsinic@gmail.com>
+#
+# This program is free software; you may redistribute it and/or modify it
+# under the same terms as Perl itself.
+#
+# PUSH/POP support submitted 2007 by openmethods.com voice solutions
+#
+# Ah, September, when the sysadmins turn colors and fall off the trees....
+#                               -- Dave Van Domelen
+
+##############################################################################
+# Modules and declarations
+##############################################################################
+
+package Term::ANSIColor;
+
+use 5.006;
+use strict;
+use warnings;
+
+use Carp qw(croak);
+use Exporter ();
+
+# use Exporter plus @ISA instead of use base for 5.6 compatibility.
+## no critic (ClassHierarchies::ProhibitExplicitISA)
+
+# Declare variables that should be set in BEGIN for robustness.
+## no critic (Modules::ProhibitAutomaticExportation)
+our (@EXPORT, @EXPORT_OK, %EXPORT_TAGS, @ISA, $VERSION);
+
+# We use autoloading, which sets this variable to the name of the called sub.
+our $AUTOLOAD;
+
+# Set $VERSION and everything export-related in a BEGIN block for robustness
+# against circular module loading (not that we load any modules, but
+# consistency is good).
+BEGIN {
+    $VERSION = '4.03';
+
+    # All of the basic supported constants, used in %EXPORT_TAGS.
+    my @colorlist = qw(
+      CLEAR           RESET             BOLD            DARK
+      FAINT           ITALIC            UNDERLINE       UNDERSCORE
+      BLINK           REVERSE           CONCEALED
+
+      BLACK           RED               GREEN           YELLOW
+      BLUE            MAGENTA           CYAN            WHITE
+      ON_BLACK        ON_RED            ON_GREEN        ON_YELLOW
+      ON_BLUE         ON_MAGENTA        ON_CYAN         ON_WHITE
+
+      BRIGHT_BLACK    BRIGHT_RED        BRIGHT_GREEN    BRIGHT_YELLOW
+      BRIGHT_BLUE     BRIGHT_MAGENTA    BRIGHT_CYAN     BRIGHT_WHITE
+      ON_BRIGHT_BLACK ON_BRIGHT_RED     ON_BRIGHT_GREEN ON_BRIGHT_YELLOW
+      ON_BRIGHT_BLUE  ON_BRIGHT_MAGENTA ON_BRIGHT_CYAN  ON_BRIGHT_WHITE
+    );
+
+    # 256-color constants, used in %EXPORT_TAGS.
+    my @colorlist256 = (
+        (map { ("ANSI$_", "ON_ANSI$_") } 0 .. 15),
+        (map { ("GREY$_", "ON_GREY$_") } 0 .. 23),
+    );
+    for my $r (0 .. 5) {
+        for my $g (0 .. 5) {
+            push(@colorlist256, map { ("RGB$r$g$_", "ON_RGB$r$g$_") } 0 .. 5);
+        }
+    }
+
+    # Exported symbol configuration.
+    @ISA         = qw(Exporter);
+    @EXPORT      = qw(color colored);
+    @EXPORT_OK   = qw(uncolor colorstrip colorvalid coloralias);
+    %EXPORT_TAGS = (
+        constants    => \@colorlist,
+        constants256 => \@colorlist256,
+        pushpop      => [@colorlist, qw(PUSHCOLOR POPCOLOR LOCALCOLOR)],
+    );
+    Exporter::export_ok_tags('pushpop', 'constants256');
+}
+
+##############################################################################
+# Package variables
+##############################################################################
+
+# If this is set, any color changes will implicitly push the current color
+# onto the stack and then pop it at the end of the constant sequence, just as
+# if LOCALCOLOR were used.
+our $AUTOLOCAL;
+
+# Caller sets this to force a reset at the end of each constant sequence.
+our $AUTORESET;
+
+# Caller sets this to force colors to be reset at the end of each line.
+our $EACHLINE;
+
+##############################################################################
+# Internal data structures
+##############################################################################
+
+# This module does quite a bit of initialization at the time it is first
+# loaded, primarily to set up the package-global %ATTRIBUTES hash.  The
+# entries for 256-color names are easier to handle programmatically, and
+# custom colors are also imported from the environment if any are set.
+
+# All basic supported attributes, including aliases.
+#<<<
+our %ATTRIBUTES = (
+    'clear'          => 0,
+    'reset'          => 0,
+    'bold'           => 1,
+    'dark'           => 2,
+    'faint'          => 2,
+    'italic'         => 3,
+    'underline'      => 4,
+    'underscore'     => 4,
+    'blink'          => 5,
+    'reverse'        => 7,
+    'concealed'      => 8,
+
+    'black'          => 30,   'on_black'          => 40,
+    'red'            => 31,   'on_red'            => 41,
+    'green'          => 32,   'on_green'          => 42,
+    'yellow'         => 33,   'on_yellow'         => 43,
+    'blue'           => 34,   'on_blue'           => 44,
+    'magenta'        => 35,   'on_magenta'        => 45,
+    'cyan'           => 36,   'on_cyan'           => 46,
+    'white'          => 37,   'on_white'          => 47,
+
+    'bright_black'   => 90,   'on_bright_black'   => 100,
+    'bright_red'     => 91,   'on_bright_red'     => 101,
+    'bright_green'   => 92,   'on_bright_green'   => 102,
+    'bright_yellow'  => 93,   'on_bright_yellow'  => 103,
+    'bright_blue'    => 94,   'on_bright_blue'    => 104,
+    'bright_magenta' => 95,   'on_bright_magenta' => 105,
+    'bright_cyan'    => 96,   'on_bright_cyan'    => 106,
+    'bright_white'   => 97,   'on_bright_white'   => 107,
+);
+#>>>
+
+# Generating the 256-color codes involves a lot of codes and offsets that are
+# not helped by turning them into constants.
+
+# The first 16 256-color codes are duplicates of the 16 ANSI colors,
+# included for completeness.
+for my $code (0 .. 15) {
+    $ATTRIBUTES{"ansi$code"}    = "38;5;$code";
+    $ATTRIBUTES{"on_ansi$code"} = "48;5;$code";
+}
+
+# 256-color RGB colors.  Red, green, and blue can each be values 0 through 5,
+# and the resulting 216 colors start with color 16.
+for my $r (0 .. 5) {
+    for my $g (0 .. 5) {
+        for my $b (0 .. 5) {
+            my $code = 16 + (6 * 6 * $r) + (6 * $g) + $b;
+            $ATTRIBUTES{"rgb$r$g$b"}    = "38;5;$code";
+            $ATTRIBUTES{"on_rgb$r$g$b"} = "48;5;$code";
+        }
+    }
+}
+
+# The last 256-color codes are 24 shades of grey.
+for my $n (0 .. 23) {
+    my $code = $n + 232;
+    $ATTRIBUTES{"grey$n"}    = "38;5;$code";
+    $ATTRIBUTES{"on_grey$n"} = "48;5;$code";
+}
+
+# Reverse lookup.  Alphabetically first name for a sequence is preferred.
+our %ATTRIBUTES_R;
+for my $attr (reverse sort keys %ATTRIBUTES) {
+    $ATTRIBUTES_R{ $ATTRIBUTES{$attr} } = $attr;
+}
+
+# Import any custom colors set in the environment.
+our %ALIASES;
+if (exists $ENV{ANSI_COLORS_ALIASES}) {
+    my $spec = $ENV{ANSI_COLORS_ALIASES};
+    $spec =~ s{\s+}{}xmsg;
+
+    # Error reporting here is an interesting question.  Use warn rather than
+    # carp because carp would report the line of the use or require, which
+    # doesn't help anyone understand what's going on, whereas seeing this code
+    # will be more helpful.
+    ## no critic (ErrorHandling::RequireCarping)
+    for my $definition (split m{,}xms, $spec) {
+        my ($new, $old) = split m{=}xms, $definition, 2;
+        if (!$new || !$old) {
+            warn qq{Bad color mapping "$definition"};
+        } else {
+            my $result = eval { coloralias($new, $old) };
+            if (!$result) {
+                my $error = $@;
+                $error =~ s{ [ ] at [ ] .* }{}xms;
+                warn qq{$error in "$definition"};
+            }
+        }
+    }
+}
+
+# Stores the current color stack maintained by PUSHCOLOR and POPCOLOR.  This
+# is global and therefore not threadsafe.
+our @COLORSTACK;
+
+##############################################################################
+# Implementation (constant form)
+##############################################################################
+
+# Time to have fun!  We now want to define the constant subs, which are named
+# the same as the attributes above but in all caps.  Each constant sub needs
+# to act differently depending on whether $AUTORESET is set.  Without
+# autoreset:
+#
+#     BLUE "text\n"  ==>  "\e[34mtext\n"
+#
+# If $AUTORESET is set, we should instead get:
+#
+#     BLUE "text\n"  ==>  "\e[34mtext\n\e[0m"
+#
+# The sub also needs to handle the case where it has no arguments correctly.
+# Maintaining all of this as separate subs would be a major nightmare, as well
+# as duplicate the %ATTRIBUTES hash, so instead we define an AUTOLOAD sub to
+# define the constant subs on demand.  To do that, we check the name of the
+# called sub against the list of attributes, and if it's an all-caps version
+# of one of them, we define the sub on the fly and then run it.
+#
+# If the environment variable ANSI_COLORS_DISABLED is set to a true value,
+# just return the arguments without adding any escape sequences.  This is to
+# make it easier to write scripts that also work on systems without any ANSI
+# support, like Windows consoles.
+#
+## no critic (ClassHierarchies::ProhibitAutoloading)
+## no critic (Subroutines::RequireArgUnpacking)
+sub AUTOLOAD {
+    my ($sub, $attr) = $AUTOLOAD =~ m{ \A ([\w:]*::([[:upper:]\d_]+)) \z }xms;
+
+    # Check if we were called with something that doesn't look like an
+    # attribute.
+    if (!($attr && defined($ATTRIBUTES{ lc $attr }))) {
+        croak("undefined subroutine &$AUTOLOAD called");
+    }
+
+    # If colors are disabled, just return the input.  Do this without
+    # installing a sub for (marginal, unbenchmarked) speed.
+    if ($ENV{ANSI_COLORS_DISABLED}) {
+        return join(q{}, @_);
+    }
+
+    # We've untainted the name of the sub.
+    $AUTOLOAD = $sub;
+
+    # Figure out the ANSI string to set the desired attribute.
+    my $escape = "\e[" . $ATTRIBUTES{ lc $attr } . 'm';
+
+    # Save the current value of $@.  We can't just use local since we want to
+    # restore it before dispatching to the newly-created sub.  (The caller may
+    # be colorizing output that includes $@.)
+    my $eval_err = $@;
+
+    # Generate the constant sub, which should still recognize some of our
+    # package variables.  Use string eval to avoid a dependency on
+    # Sub::Install, even though it makes it somewhat less readable.
+    ## no critic (BuiltinFunctions::ProhibitStringyEval)
+    ## no critic (ValuesAndExpressions::ProhibitImplicitNewlines)
+    my $eval_result = eval qq{
+        sub $AUTOLOAD {
+            if (\$ENV{ANSI_COLORS_DISABLED}) {
+                return join(q{}, \@_);
+            } elsif (\$AUTOLOCAL && \@_) {
+                return PUSHCOLOR('$escape') . join(q{}, \@_) . POPCOLOR;
+            } elsif (\$AUTORESET && \@_) {
+                return '$escape' . join(q{}, \@_) . "\e[0m";
+            } else {
+                return '$escape' . join(q{}, \@_);
+            }
+        }
+        1;
+    };
+
+    # Failure is an internal error, not a problem with the caller.
+    ## no critic (ErrorHandling::RequireCarping)
+    if (!$eval_result) {
+        die "failed to generate constant $attr: $@";
+    }
+
+    # Restore $@.
+    ## no critic (Variables::RequireLocalizedPunctuationVars)
+    $@ = $eval_err;
+
+    # Dispatch to the newly-created sub.
+    ## no critic (References::ProhibitDoubleSigils)
+    goto &$AUTOLOAD;
+}
+## use critic (Subroutines::RequireArgUnpacking)
+
+# Append a new color to the top of the color stack and return the top of
+# the stack.
+#
+# $text - Any text we're applying colors to, with color escapes prepended
+#
+# Returns: The text passed in
+sub PUSHCOLOR {
+    my (@text) = @_;
+    my $text = join(q{}, @text);
+
+    # Extract any number of color-setting escape sequences from the start of
+    # the string.
+    my ($color) = $text =~ m{ \A ( (?:\e\[ [\d;]+ m)+ ) }xms;
+
+    # If we already have a stack, append these escapes to the set from the top
+    # of the stack.  This way, each position in the stack stores the complete
+    # enabled colors for that stage, at the cost of some potential
+    # inefficiency.
+    if (@COLORSTACK) {
+        $color = $COLORSTACK[-1] . $color;
+    }
+
+    # Push the color onto the stack.
+    push(@COLORSTACK, $color);
+    return $text;
+}
+
+# Pop the color stack and return the new top of the stack (or reset, if
+# the stack is empty).
+#
+# @text - Any text we're applying colors to
+#
+# Returns: The concatenation of @text prepended with the new stack color
+sub POPCOLOR {
+    my (@text) = @_;
+    pop(@COLORSTACK);
+    if (@COLORSTACK) {
+        return $COLORSTACK[-1] . join(q{}, @text);
+    } else {
+        return RESET(@text);
+    }
+}
+
+# Surround arguments with a push and a pop.  The effect will be to reset the
+# colors to whatever was on the color stack before this sequence of colors was
+# applied.
+#
+# @text - Any text we're applying colors to
+#
+# Returns: The concatenation of the text and the proper color reset sequence.
+sub LOCALCOLOR {
+    my (@text) = @_;
+    return PUSHCOLOR(join(q{}, @text)) . POPCOLOR();
+}
+
+##############################################################################
+# Implementation (attribute string form)
+##############################################################################
+
+# Return the escape code for a given set of color attributes.
+#
+# @codes - A list of possibly space-separated color attributes
+#
+# Returns: The escape sequence setting those color attributes
+#          undef if no escape sequences were given
+#  Throws: Text exception for any invalid attribute
+sub color {
+    my (@codes) = @_;
+    @codes = map { split } @codes;
+
+    # Return the empty string if colors are disabled.
+    if ($ENV{ANSI_COLORS_DISABLED}) {
+        return q{};
+    }
+
+    # Build the attribute string from semicolon-separated numbers.
+    my $attribute = q{};
+    for my $code (@codes) {
+        $code = lc($code);
+        if (defined($ATTRIBUTES{$code})) {
+            $attribute .= $ATTRIBUTES{$code} . q{;};
+        } elsif (defined($ALIASES{$code})) {
+            $attribute .= $ALIASES{$code} . q{;};
+        } else {
+            croak("Invalid attribute name $code");
+        }
+    }
+
+    # We added one too many semicolons for simplicity.  Remove the last one.
+    chop($attribute);
+
+    # Return undef if there were no attributes.
+    return ($attribute ne q{}) ? "\e[${attribute}m" : undef;
+}
+
+# Return a list of named color attributes for a given set of escape codes.
+# Escape sequences can be given with or without enclosing "\e[" and "m".  The
+# empty escape sequence '' or "\e[m" gives an empty list of attrs.
+#
+# There is one special case.  256-color codes start with 38 or 48, followed by
+# a 5 and then the 256-color code.
+#
+# @escapes - A list of escape sequences or escape sequence numbers
+#
+# Returns: An array of attribute names corresponding to those sequences
+#  Throws: Text exceptions on invalid escape sequences or unknown colors
+sub uncolor {
+    my (@escapes) = @_;
+    my (@nums, @result);
+
+    # Walk the list of escapes and build a list of attribute numbers.
+    for my $escape (@escapes) {
+        $escape =~ s{ \A \e\[ }{}xms;
+        $escape =~ s{ m \z }   {}xms;
+        my ($attrs) = $escape =~ m{ \A ((?:\d+;)* \d*) \z }xms;
+        if (!defined($attrs)) {
+            croak("Bad escape sequence $escape");
+        }
+
+        # Pull off 256-color codes (38;5;n or 48;5;n) as a unit.
+        push(@nums, $attrs =~ m{ ( 0*[34]8;0*5;\d+ | \d+ ) (?: ; | \z ) }xmsg);
+    }
+
+    # Now, walk the list of numbers and convert them to attribute names.
+    # Strip leading zeroes from any of the numbers.  (xterm, at least, allows
+    # leading zeroes to be added to any number in an escape sequence.)
+    for my $num (@nums) {
+        $num =~ s{ ( \A | ; ) 0+ (\d) }{$1$2}xmsg;
+        my $name = $ATTRIBUTES_R{$num};
+        if (!defined($name)) {
+            croak("No name for escape sequence $num");
+        }
+        push(@result, $name);
+    }
+
+    # Return the attribute names.
+    return @result;
+}
+
+# Given a string and a set of attributes, returns the string surrounded by
+# escape codes to set those attributes and then clear them at the end of the
+# string.  The attributes can be given either as an array ref as the first
+# argument or as a list as the second and subsequent arguments.
+#
+# If $EACHLINE is set, insert a reset before each occurrence of the string
+# $EACHLINE and the starting attribute code after the string $EACHLINE, so
+# that no attribute crosses line delimiters (this is often desirable if the
+# output is to be piped to a pager or some other program).
+#
+# $first - An anonymous array of attributes or the text to color
+# @rest  - The text to color or the list of attributes
+#
+# Returns: The text, concatenated if necessary, surrounded by escapes to set
+#          the desired colors and reset them afterwards
+#  Throws: Text exception on invalid attributes
+sub colored {
+    my ($first, @rest) = @_;
+    my ($string, @codes);
+    if (ref($first) && ref($first) eq 'ARRAY') {
+        @codes = @{$first};
+        $string = join(q{}, @rest);
+    } else {
+        $string = $first;
+        @codes  = @rest;
+    }
+
+    # Return the string unmolested if colors are disabled.
+    if ($ENV{ANSI_COLORS_DISABLED}) {
+        return $string;
+    }
+
+    # Find the attribute string for our colors.
+    my $attr = color(@codes);
+
+    # If $EACHLINE is defined, split the string on line boundaries, suppress
+    # empty segments, and then colorize each of the line sections.
+    if (defined($EACHLINE)) {
+        my @text = map { ($_ ne $EACHLINE) ? $attr . $_ . "\e[0m" : $_ }
+          grep { length($_) > 0 }
+          split(m{ (\Q$EACHLINE\E) }xms, $string);
+        return join(q{}, @text);
+    } else {
+        return $attr . $string . "\e[0m";
+    }
+}
+
+# Define a new color alias, or return the value of an existing alias.
+#
+# $alias - The color alias to define
+# $color - The standard color the alias will correspond to (optional)
+#
+# Returns: The standard color value of the alias
+#          undef if one argument was given and the alias was not recognized
+#  Throws: Text exceptions for invalid alias names, attempts to use a
+#          standard color name as an alias, or an unknown standard color name
+sub coloralias {
+    my ($alias, $color) = @_;
+    if (!defined($color)) {
+        if (!exists $ALIASES{$alias}) {
+            return;
+        } else {
+            return $ATTRIBUTES_R{ $ALIASES{$alias} };
+        }
+    }
+    if ($alias !~ m{ \A [\w._-]+ \z }xms) {
+        croak(qq{Invalid alias name "$alias"});
+    } elsif ($ATTRIBUTES{$alias}) {
+        croak(qq{Cannot alias standard color "$alias"});
+    } elsif (!exists $ATTRIBUTES{$color}) {
+        croak(qq{Invalid attribute name "$color"});
+    }
+    $ALIASES{$alias} = $ATTRIBUTES{$color};
+    return $color;
+}
+
+# Given a string, strip the ANSI color codes out of that string and return the
+# result.  This removes only ANSI color codes, not movement codes and other
+# escape sequences.
+#
+# @string - The list of strings to sanitize
+#
+# Returns: (array)  The strings stripped of ANSI color escape sequences
+#          (scalar) The same, concatenated
+sub colorstrip {
+    my (@string) = @_;
+    for my $string (@string) {
+        $string =~ s{ \e\[ [\d;]* m }{}xmsg;
+    }
+    return wantarray ? @string : join(q{}, @string);
+}
+
+# Given a list of color attributes (arguments for color, for instance), return
+# true if they're all valid or false if any of them are invalid.
+#
+# @codes - A list of color attributes, possibly space-separated
+#
+# Returns: True if all the attributes are valid, false otherwise.
+sub colorvalid {
+    my (@codes) = @_;
+    @codes = map { split(q{ }, lc($_)) } @codes;
+    for my $code (@codes) {
+        if (!defined($ATTRIBUTES{$code}) && !defined($ALIASES{$code})) {
+            return;
+        }
+    }
+    return 1;
+}
+
+# Text::Aligner - Align text in columns
+package Text::Aligner;
+
+use strict;
+use warnings;
+
+use 5.008;
+
+BEGIN    {
+    use Exporter ();
+    use vars qw ($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
+    $VERSION     = '0.12';
+    @ISA         = qw (Exporter);
+    @EXPORT      = qw ();
+    @EXPORT_OK   = qw ( align);
+    %EXPORT_TAGS = ();
+}
+
+# this is a non-method, and currently the only user interface
+sub align ($@) {
+    my $ali = Text::Aligner->new( shift);
+    $ali->_alloc( map ref eq 'SCALAR' ? $$_ : $_, @_);
+    if ( defined wantarray ) {
+        my @just = map $ali->_justify( ref eq 'SCALAR' ? $$_ : $_), @_;
+        return @just if wantarray;
+        return join "\n", @just, '';
+    } else {
+        for ( @_ ) {
+            $_ = $ali->_justify( $_) for ref eq 'SCALAR' ? $$_ : $_; # one-shot
+        }
+    }
+}
+
+### class Text::Aligner
+
+sub _new { # internal creator
+    my $class = shift;
+    my ( $width, $pos) = @_; # both method-or-coderef (this is very general)
+    bless {
+        width => $width,
+        pos => $pos,
+        left => Text::Aligner::MaxKeeper->new,
+        right => Text::Aligner::MaxKeeper->new,
+    }, $class;
+}
+
+# create an aligner
+sub new {
+    my ( $class, $spec) = @_;
+    $spec ||= 0; # left alignment is default
+    my $al;
+    if ( !ref( $spec) and $spec =~ s/^auto/num/ ) {
+        $al = Text::Aligner::Auto->_new( $spec);
+    } else {
+        $al = $class->_new( _compile_alispec( $spec));
+    }
+    $al;
+}
+
+# return left and right field widths for an object
+sub _measure0 {
+    my $al = shift;
+    my $obj = shift;
+    $obj = '' unless defined $obj;
+    my ( $w, $p);
+    if ( ref $obj ) {
+        ( $w, $p) = ( $obj->$al->{ width}->(), $obj->$al->{ pos}->() );
+    } else {
+        ( $w, $p) = ( $al->{ width}->( $obj), $al->{ pos}->( $obj) );
+    }
+    $_ ||= 0 for $w, $p;
+    ( $p, $w - $p);
+}
+
+#use Term::ANSIColor 2.02;
+
+# return left and right field widths for an object
+sub _measure {
+    my $al = shift;
+    my $obj = shift;
+    $obj = '' unless defined $obj;
+    my ( $wmeth, $pmeth) = @{ $al}{ qw( width pos)};
+
+    # support colorized strings
+    $obj = Term::ANSIColor::colorstrip($obj) unless ref $obj;
+
+    my $w = ref $wmeth ? $wmeth->( $obj) : $obj->$wmeth;
+    my $p = ref $pmeth ? $pmeth->( $obj) : $obj->$pmeth;
+    $_ ||= 0 for $w, $p;
+    ( $p, $w - $p);
+}
+
+# Return left and right maxima, or nothing if the aligner is empty
+sub _status {
+    my @lr = ( $_[ 0]->{ left}->max, $_[ 0]->{ right}->max);
+    # $l and $r should be both defined or undefined, unless the
+    # MaxKeeper memory is corrupted by forgetting unremembered things.
+    return unless defined( $lr[ 0]) and defined( $lr[ 1]);
+    @lr;
+}
+
+# remember alignment requirements
+sub _alloc {
+    my $al = shift;
+    for ( @_ ) {
+#       $_ ||= ''; print "allocing '$_'\n";
+        my ( $l, $r) = $al->_measure( $_);
+        $al->{ left}->remember( $l); # space needed left of pos
+        $al->{ right}->remember( $r); # ...and right of pos
+    }
+    $al;
+}
+
+# release alignment requirement.  it disturbs an aligner deeply to forget
+# things it hasn't remembered.  the effects may be delayed.
+sub _forget {
+    my $al = shift;
+    for ( map defined() ? $_ : '', @_ ) {
+#       print "forgetting '$_'\n";
+        my ( $l, $r) = $al->_measure( $_);
+        $al->{ left}->forget( $l);
+        $al->{ right}->forget( $r);
+    }
+    $al;
+}
+
+# justify a string.  a string is aligned within the aligner's field, and
+# filled with blanks or cut to size, as appropriate.  a string that has
+# been allocated will never be trimmed (that is the point of allocation).
+# if the aligner is empty it returns the string unaltered.
+sub _justify {
+    my $al = shift;
+    my $str  = shift;
+#   print "justifying '$str'\n";
+    $str .= ''; # stringify (objects, numbers, undef)
+    my ( $l_pad, $r_pad) = $al->_padding( $str);
+    substr( $str, 0, -$l_pad) = '' if $l_pad < 0; # trim if negative
+    substr( $str, $r_pad) = '' if $r_pad < 0; # ... both ends
+    join $str, ' ' x $l_pad, ' ' x $r_pad; # pad if positive
+}
+
+# return two numbers that indicate how many blanks are needed on each side
+# of a string to justify it.  Negative values mean trim that many characters.
+# an empty aligner returns ( 0, 0), so doesn't change anything.
+sub _padding {
+    my $al = shift;
+    my $str = shift;
+    my ( $this_l, $this_r) = $al->_measure( $str);
+    my ( $l_pad, $r_pad) = ( 0, 0);
+    if ( $al->_status ) {
+        ( $l_pad, $r_pad) = $al->_status;
+        $l_pad -= $this_l;
+        $r_pad -= $this_r;
+    }
+    ( $l_pad, $r_pad);
+}
+
+# _compile_alispec() returns positioners according to specification.  In
+# effect, it is the interpreter for alignment specifications.
+
+sub _compile_alispec { # it's a dirty job...
+    my $width = sub { length shift }; # this is always so for string aligners
+    my $pos; # the positioner we actually compile
+    local $_ = shift || ''; # alignment specification
+    if ( ref() eq 'Regexp' ) {
+        my $regex = $_; # lexical copy!
+        $pos = sub {
+            local $_ = shift;
+            return m/$regex/ ? $-[ 0] : length; # assume match after string
+        };
+    } else {
+        s/^left/0/;
+        s/^center/0.5/;
+        s/^right/1/;
+        if ( _is_number( $_) ) {
+            my $proportion = $_; # use lexical copy
+            $pos = sub { int( $proportion*length shift) };
+        } elsif ( $_ =~ /^(?:num|point)(?:\((.*))?/ ) {
+            my $point = defined $1 ? $1 : '';
+            $point =~ s/\)$//; # ignore trailing paren, if present
+            length $point or $point = '.';
+            $pos = sub { index( shift() . $point, $point) }
+        } else {
+            $pos = sub { 0 };
+        }
+    }
+    ( $width, $pos);
+}
+
+# decide if a string is a number. (see perlfaq4).
+sub _is_number {
+    my ($x) = @_;
+    return 0 unless defined $x;
+    return 0 if $x !~ /\d/;
+    return 1 if $x =~ /^-?\d+\.?\d*$/;
+    $x = Term::ANSIColor::colorstrip($x);
+    $x =~ /^-?\d+\.?\d*$/
+}
+
+package Text::Aligner::Auto;
+# Combined numeric and left alignment.  Numbers are aligned numerically,
+# other strings are left-aligned.  The resulting columns are interleaved
+# flush left and filled on the right if necessary.
+
+sub _new { # only called by Text::Aligner->new()
+    my $class = shift;
+    my $numspec = shift; # currently ignored
+    bless {
+        num => Text::Aligner->new( 'num'),    # align numbers among themselves
+        other => Text::Aligner->new,          # left-align anything else
+    }, $class;
+}
+
+sub _alloc {
+    my $aa = shift;
+    my @num = grep _is_number( $_), @_;
+    my @other = grep !_is_number( $_), @_;
+    $aa->{ num}->_alloc( @num);
+    $aa->{ other}->_alloc( @other);
+    $aa;
+}
+
+sub _forget {
+    my $aa = shift;
+    $aa->{ num}->_forget( grep _is_number( $_), @_);
+    $aa->{ other}->_forget( grep !_is_number( $_), @_);
+    $aa;
+}
+
+# Justify as required
+sub _justify {
+    my ( $aa, $str) = @_;
+    # align according to type
+    $str = $aa->{ _is_number( $str) ? 'num' : 'other'}->_justify( $str);
+    my $combi = Text::Aligner->new; # left-justify pre-aligned string
+    # initialise to size of partial aligners.  (don't initialise from
+    # empty aligner)
+    $combi->_alloc( $aa->{ num}->_justify( '')) if $aa->{ num}->_status;
+    $combi->_alloc( $aa->{ other}->_justify( '')) if $aa->{ other}->_status;
+    $combi->_justify( $str);
+}
+
+# for convenience
+BEGIN { # import _is_number()
+    *_is_number = \ &Text::Aligner::_is_number;
+}
+
+package Text::Aligner::MaxKeeper;
+# Keep the maximum of a dynamic set of numbers.  Optimized for the case of
+# a relatively small range of numbers that may occur repeatedly.
+
+sub new {
+    bless {
+        max => undef,
+        seen => {},
+    }, shift;
+}
+
+sub max { $_[ 0]->{ max} }
+
+sub remember {
+    my ( $mk, $val) = @_;
+    _to_max( $mk->{ max}, $val);
+    $mk->{ seen}->{ $val}++;
+    $mk;
+}
+
+sub forget {
+    my ( $mk, $val) = @_;
+    if ( exists $mk->{ seen}->{ $val} ) {
+        my $seen = $mk->{ seen};
+        unless ( --$seen->{ $val} ) {
+            delete $seen->{ $val};
+            if ( $mk->{ max} == $val ) {
+                # lost the maximum, recalculate
+                undef $mk->{ max};
+                _to_max( $mk->{ max}, keys %$seen);
+            }
+        }
+    }
+    $mk;
+}
+
+sub _to_max {
+    my $var = \ shift;
+    defined $_ and ( not defined $$var or $$var < $_) and $$var = $_ for @_;
+    $$var;
+}
+
+########################################### main pod documentation begin ##
+
+
+#1; #this line is important and will help the module return a true value
+
+#__END__
+
+#Copyright (c) 2002 Anno Siegel. All rights reserved.
+#This program is free software; you can redistribute
+#it and/or modify it under the terms of the ISC license.
+
+#(This program had been licensed under the same terms as Perl itself up to
+#version 1.118 released on 2011, and was relicensed by permission of its
+#originator).
+
+#The full text of the license can be found in the
+#LICENSE file included with this module.
+
+#Shlomi Fish <shlomif@cpan.org>
+
+#This software is Copyright (c) 2002 by Anno Siegel.
+
+#This is free software, licensed under:
+
+  #The MIT (X11) License
+
+# Text::Table - Organize Data in Tables
+package Text::Table;
+
+use strict;
+use warnings;
+
+use 5.008;
+
+use List::Util qw(sum max);
+
+#use Text::Aligner qw(align);
+
+BEGIN {
+    our $VERSION = '1.130';
+}
+
+use overload
+    '""'  => 'stringify',
+;
+
+### User interface:  How to specify columns and column separators
+
+sub _is_sep {
+    my $datum = shift;
+
+    return
+    (
+        defined($datum)
+            and
+        (
+            (ref($datum) eq 'SCALAR')
+                    or
+            (ref($datum) eq 'HASH' and $datum->{is_sep})
+        )
+    );
+}
+
+sub _get_sep_title_body
+{
+    my $sep = shift;
+
+    return
+        +( ref($sep) eq 'HASH' )
+        ? @{ $sep }{qw(title body)}
+        : split( /\n/, ${$sep}, -1 ) ;
+}
+
+sub _parse_sep {
+    my $sep = shift;
+
+    if (!defined($sep))
+    {
+        $sep = '';
+    }
+
+    my ($title, $body) = _get_sep_title_body($sep);
+
+    if (!defined($body))
+    {
+        $body = $title;
+    }
+
+    ($title, $body) = align( 'left', $title, $body);
+
+    return
+    {
+        is_sep => 1,
+        title  => $title,
+        body   => $body,
+    };
+}
+
+sub _default_if_empty
+{
+    my ($ref, $default) = @_;
+
+    if (! (defined($$ref) && length($$ref)))
+    {
+        $$ref = $default;
+    }
+
+    return;
+}
+
+sub _is_align
+{
+    my $align = shift;
+
+    return $align =~ /\A(?:left|center|right)/;
+}
+
+sub _parse_spec {
+    my $spec = shift;
+
+    if (!defined($spec))
+    {
+        $spec = '';
+    }
+
+    my $alispec = qr/^ *(?:left|center|right|num|point|auto)/;
+    my ( $title, $align, $align_title, $align_title_lines, $sample);
+    if ( ref ($spec) eq 'HASH' ) {
+        ( $title, $align, $align_title, $align_title_lines, $sample) =
+            @{$spec}{qw( title align align_title align_title_lines sample )};
+    } else {
+        my $alispec = qr/&(.*)/;
+        if ( $spec =~ $alispec ) {
+            ($title, $align, $sample) = ($spec =~ /(.*)^$alispec\n?(.*)/sm);
+        } else {
+            $title = $spec;
+        }
+        for my $s ($title, $sample)
+        {
+            if (defined($s))
+            {
+                chomp($s);
+            }
+        }
+    }
+
+    # Assign default values.
+    foreach my $x ($title, $sample)
+    {
+        if (!defined($x))
+        {
+            $x = [];
+        }
+        elsif (ref($x) ne 'ARRAY')
+        {
+            $x = [ split /\n/, $x, -1];
+        }
+    }
+
+    _default_if_empty(\$align, 'auto');
+
+    unless (
+        ref $align eq 'Regexp' or
+        $align =~ /^(?:left|center|right|num\(?|point\(?|auto)/
+    ) {
+        _warn( "Invalid align specification: '$align', using 'auto'");
+        $align = 'auto';
+    }
+
+    _default_if_empty(\$align_title, 'left');
+
+    if ( ! _is_align($align_title) ) {
+        _warn( "Invalid align_title specification: " .
+            "'$align_title', using 'left'",
+        );
+        $align_title = 'left';
+    }
+
+    _default_if_empty(\$align_title_lines, $align_title);
+
+    if ( ! _is_align($align_title_lines) ) {
+        _warn( "Invalid align_title_lines specification: " .
+            "'$align_title_lines', using 'left'",
+        );
+        $align_title_lines = 'left';
+    }
+
+    return
+    {
+        title             => $title,
+        align             => $align,
+        align_title       => $align_title,
+        align_title_lines => $align_title_lines,
+        sample            => $sample,
+    };
+}
+
+### table creation
+
+sub new
+{
+    my $tb = bless {}, shift;
+
+    return $tb->_entitle( [ @_ ] );
+}
+
+sub _blank
+{
+    my $self = shift;
+
+    if (@_)
+    {
+        $self->{blank} = shift;
+    }
+
+    return $self->{blank};
+}
+
+sub _cols
+{
+    my $self = shift;
+
+    if (@_)
+    {
+        $self->{cols} = shift;
+    }
+
+    return $self->{cols};
+}
+
+sub _forms
+{
+    my $self = shift;
+
+    if (@_)
+    {
+        $self->{forms} = shift;
+    }
+
+    return $self->{forms};
+}
+
+sub _lines
+{
+    my $self = shift;
+
+    if (@_)
+    {
+        $self->{lines} = shift;
+    }
+
+    return $self->{lines};
+}
+
+sub _spec
+{
+    my $self = shift;
+
+    if (@_)
+    {
+        $self->{spec} = shift;
+    }
+
+    return $self->{spec};
+}
+
+sub _titles
+{
+    my $self = shift;
+
+    if (@_)
+    {
+        $self->{titles} = shift;
+    }
+
+    return $self->{titles};
+}
+
+sub _entitle {
+    my ($tb, $sep_list) = @_; # will be completely overwritten
+    # find active separators and, well separate them from col specs.
+    # n+1 separators for n cols
+    my ( @seps, @spec); # separators and column specifications
+    my $sep;
+    foreach my $sep_item ( @{$sep_list} ) {
+        if ( _is_sep ($sep_item) ) {
+            $sep = _parse_sep($sep_item);
+        } else {
+            push @seps, $sep;
+            push @spec, _parse_spec($sep_item);
+            undef $sep;
+        }
+    }
+    push @seps, $sep;
+    # build sprintf formats from separators
+    my $title_form = _compile_field_format('title', \@seps);
+    my $body_form = _compile_field_format('body', \@seps);
+
+    # pre_align titles
+    my @titles = map { [ @{ $_->{title} } ] } @spec;
+
+    my $title_height = max(0, map { scalar(@$_) } @titles);
+
+    foreach my $title (@titles)
+    {
+        push @{$title}, ( '') x ( $title_height - @{$title});
+    }
+
+    foreach my $t_idx (0 .. $#titles)
+    {
+        Text::Aligner->align($spec[$t_idx]->{align_title_lines}, @{$titles[$t_idx]});
+    }
+
+    # build data structure
+    $tb->_spec(\@spec);
+    $tb->_cols([ map [], 1 .. @spec]);
+    $tb->_forms([ $title_form, $body_form]); # separators condensed
+    $tb->_titles(\@titles);
+
+    $tb->_clear_cache;
+
+    return $tb;
+}
+
+# sprintf-format for line assembly, using separators
+sub _compile_format {
+   my $seps = shift; # mix of strings and undef (for default)
+
+   for my $idx (0 .. $#$seps)
+   {
+        if (!defined($seps->[$idx]))
+        {
+            $seps->[$idx] = ($idx == 0 or $idx == $#$seps) ? '' : q{ };
+        }
+        else
+        {
+            # protect against sprintf
+            $seps->[$idx] =~ s/%/%%/g;
+        }
+   }
+   return join '%s', @$seps;
+}
+
+sub _compile_field_format
+{
+    my ($field, $seps) = @_;
+
+    return _compile_format(
+        [map { defined($_) ? $_->{$field} : undef } @$seps]
+    );
+}
+
+# reverse format compilation (used by colrange())
+sub _recover_separators {
+    my $format = shift;
+    my @seps = split /(?<!%)%s/, $format, -1;
+    for my $s (@seps)
+    {
+        $s =~ s/%%/%/g;
+    }
+    return \@seps;
+}
+
+# select some columns, (optionally if in [...]), and add new separators
+# (the other table creator)
+sub select {
+    my $tb = shift;
+    my @args = map $tb->_select_group( $_), @_;
+    # get column selection, checking indices (some have been checked by
+    # _select_group, but not all)
+    my @sel = map $tb->_check_index( $_), grep !_is_sep( $_), @args;
+    # replace indices with column spec to create subtable
+    for my $arg (@args)
+    {
+        if (! _is_sep($arg))
+        {
+            $arg = $tb->_spec->[ $arg];
+        }
+    }
+    my $sub = ref( $tb)->new( @args);
+    # sneak in data columns
+    @{ $sub->{ cols}} = map { [ @$_ ] } @{ $tb->_cols}[ @sel];
+    $sub;
+}
+
+# the first non-separator column in the group is tested if it has any data
+# if so, the group is returned, else nothing
+sub _select_group {
+    my ( $tb, $group) = @_;
+    return $group unless ref $group eq 'ARRAY';
+    GROUP_LOOP:
+    for my $g ( @$group ) {
+        if (_is_sep($g))
+        {
+            next GROUP_LOOP;
+        }
+        $tb->_check_index($g);
+
+        if (grep { $_} @{ $tb->_cols->[$g] })
+        {
+            return @$group;
+        }
+        return; # no more tries after non-sep was found
+    }
+    return; # no column index in group, no select
+}
+
+# check index for validity, return arg if returns at all
+sub _check_index {
+    my $tb = shift;
+    my ( $i) = @_;
+    my $n = $tb->n_cols;
+    my $ok = eval {
+        use warnings FATAL => 'numeric';
+        -$n <= $i and $i < $n; # in range of column array?
+    };
+    _warn( "Invalid column index '$_'") if $@ or not $ok;
+    shift;
+}
+
+### data entry
+
+sub _clear_cache {
+    my ($tb) = @_;
+
+    $tb->_blank(undef());
+    $tb->_lines(undef());
+
+    return;
+}
+
+# add one data line or split the line into follow-up lines
+sub add {
+    my $tb = shift;
+
+    if (! $tb->n_cols) {
+        $tb->_entitle( [ ('') x @_] );
+    }
+
+    foreach my $row (
+        _transpose(
+            [
+                map { [ defined() ? split( /\n/ ) : '' ] } @_
+            ]
+        )
+    )
+    {
+        $tb->_add(@$row);
+    }
+    $tb->_clear_cache;
+
+    return $tb;
+}
+
+# add one data line
+sub _add {
+    my $tb = shift;
+
+    foreach my $col ( @{ $tb->_cols} ) {
+        push @{$col}, shift(@_);
+    }
+
+    $tb->_clear_cache;
+
+    return $tb;
+}
+
+# add one or more data lines
+sub load {
+    my $tb = shift;
+    foreach my $row ( @_ ) {
+        if (!defined($row)) {
+            $row = '';
+        }
+        $tb->add(
+            (ref($row) eq 'ARRAY') ? (@$row) : (split ' ',$row)
+        )
+    }
+    $tb;
+}
+
+sub clear {
+    my $tb = shift;
+
+    foreach my $col (@{ $tb->_cols} )
+    {
+        $col = [];
+    }
+
+    $tb->_clear_cache;
+
+    return $tb;
+}
+
+### access to output area
+
+## sizes
+
+# number of table columns
+sub n_cols { scalar @{ $_[0]->{ spec}} }
+
+# number of title lines
+sub title_height { $_[ 0]->n_cols and scalar @{ $_[ 0]->_titles->[ 0]} }
+
+# number of data lines
+sub body_height
+{
+    my ($tb) = @_;
+
+    return ($tb->n_cols && scalar @{ $tb->_cols->[0] });
+}
+
+# total height
+sub table_height
+{
+    my $tb = shift;
+    return $tb->title_height + $tb->body_height;
+}
+
+BEGIN { *height = \&table_height; } # alias
+
+# number of characters in each table line. need to build the table to know
+sub width
+{
+    my ($tb) = @_;
+
+    return $tb->height && (length( ($tb->table(0))[0] ) - 1);
+}
+
+sub _normalize_col_index
+{
+    my ($tb, $col_index) = @_;
+
+    $col_index ||= 0;
+
+    if ($col_index < 0)
+    {
+        $col_index += $tb->n_cols;
+    }
+
+    if ($col_index < 0)
+    {
+        $col_index = 0;
+    }
+    elsif ($col_index > $tb->n_cols)
+    {
+        $col_index = $tb->n_cols;
+    }
+
+    return $col_index;
+}
+
+# start and width of each column
+sub colrange {
+    my ( $tb, $proto_col_index) = @_;
+
+    my $col_index = $tb->_normalize_col_index($proto_col_index);
+
+    return ( 0, 0) unless $tb->width; # width called, $tb->_blank() exists now
+    my @widths = map { length } @{ $tb->_blank}, '';
+    @widths = @widths[ 0 .. $col_index];
+
+    my $width = pop @widths;
+    my $pos = sum(@widths) || 0;
+
+    my $seps_aref = _recover_separators( $tb->_forms->[ 0]);
+
+    my $sep_sum = 0;
+    foreach my $sep (@$seps_aref[ 0 .. $col_index])
+    {
+        $sep_sum += length($sep);
+    }
+
+    return ( $pos+$sep_sum, $width ) ;
+}
+
+## printable output
+
+# whole table
+sub table {
+    my $tb = shift;
+
+    return $tb->_table_portion( $tb->height, 0, @_);
+}
+
+# only titles
+sub title {
+    my $tb = shift;
+
+    return $tb->_table_portion( $tb->title_height, 0, @_);
+}
+
+# only body
+sub body {
+    my $tb = shift;
+
+    return $tb->_table_portion( $tb->body_height, $tb->title_height, @_);
+}
+
+sub stringify
+{
+    my ($tb) = @_;
+
+    return (scalar ( $tb->table() ));
+}
+
+### common internals
+
+# common representation of table(), title() and body()
+
+sub _table_portion_as_aref
+{
+    my $tb = shift;
+
+    my $total = shift;
+    my $offset = shift;
+
+    my ( $from, $n) = ( 0, $total); # if no parameters
+
+    if ( @_ ) {
+        $from = shift;
+        $n = @_ ? shift : 1; # one line if not given
+    }
+
+    ( $from, $n) = _limit_range( $total, $from, $n);
+
+    my $limit = $tb->title_height; # title format below
+    $from += $offset;
+
+    return
+    [
+        map $tb->_assemble_line( $_ >= $limit, $tb->_table_line( $_), 0),
+        $from .. $from + $n - 1
+    ];
+}
+
+sub _table_portion
+{
+    my $tb = shift;
+
+    my $lines_aref = $tb->_table_portion_as_aref(@_);
+
+    return (wantarray ? @$lines_aref : join('', @$lines_aref));
+}
+
+sub _limit_range
+{
+    my ( $total, $from, $n) = @_;
+
+    $from ||= 0;
+    $from += $total if $from < 0;
+    $n = $total unless defined $n;
+
+    return ( 0, 0) if $from + $n < 0 or $from >= $total;
+
+    $from = 0 if $from < 0;
+    $n = $total - $from if $n > $total - $from;
+
+    return( $from, $n);
+}
+
+# get table line (formatted, including titles). fill cache if needed
+sub _table_line {
+    my ($tb, $idx) = @_;
+
+    if (! $tb->_lines)
+    {
+        $tb->_lines([ $tb->_build_table_lines ]);
+    }
+
+    return $tb->_lines->[$idx];
+}
+
+# build array of lines of justified data items
+sub _build_table_lines {
+    my $tb = shift;
+
+    # copy data columns, replacing undef with ''
+    my @cols =
+        map
+        { [ map { defined($_) ? $_ : '' } @$_ ] }
+        @{ $tb->_cols() } ;
+
+    # add set of empty strings for blank line (needed to build horizontal rules)
+    foreach my $col (@cols)
+    {
+        push @$col, '';
+    }
+
+    # add samples for minimum alignment
+    foreach my $col_idx (0 .. $#cols)
+    {
+        push @{$cols[$col_idx]}, @{$tb->_spec->[$col_idx]->{sample}};
+    }
+
+    # align to style
+    foreach my $col_idx (0 .. $#cols)
+    {
+        Text::Aligner->align($tb->_spec->[$col_idx]->{align}, @{$cols[$col_idx]});
+    }
+
+    # trim off samples, but leave blank line
+    foreach my $col (@cols)
+    {
+        splice( @{$col}, 1 + $tb->body_height );
+    }
+
+    # include titles
+    foreach my $col_idx (0 .. $#cols)
+    {
+        unshift @{$cols[$col_idx]}, @{$tb->_titles->[$col_idx]};
+    }
+
+    # align title and body portions of columns
+    # blank line will be there even with no data
+    foreach my $col_idx (0 .. $#cols)
+    {
+        Text::Aligner->align($tb->_spec->[$col_idx]->{align_title}, @{$cols[$col_idx]});
+    }
+
+    # deposit a blank line, pulling it off the columns.
+    # *_rule() knows this is done
+    my @blank;
+
+    foreach my $col (@cols)
+    {
+        push @blank, pop(@$col);
+    }
+
+    $tb->_blank(\@blank);
+
+    return _transpose_n( $tb->height, \@cols); # bye-bye, @cols
+}
+
+# destructively transpose a number of lines/cols from an array of arrayrefs
+sub _transpose_n {
+    my ($n, $cols) = @_;
+
+    return map { [ map { shift @$_ } @$cols] } 1 .. $n;
+}
+
+# like _transpose_n, but find the number to transpose from max of given
+sub _transpose
+{
+    my ($cols) = @_;
+
+    my $m = max ( map { scalar(@$_) } @$cols, []);
+
+    return _transpose_n( $m, $cols);
+}
+
+# make a line from a number of formatted data elements
+sub _assemble_line {
+    my ($tb, $in_body, $line_aref, $replace_spaces) = @_;
+
+    my $format = $tb->_forms->[ !!$in_body];
+
+    if ($replace_spaces)
+    {
+        $format =~ s/\s/=/g;
+    }
+
+    return sprintf($format, @$line_aref) . "\n";
+}
+
+sub _text_rule
+{
+    my ($tb, $rule, $char, $alt) = @_;
+
+    # replace blanks with $char. If $alt is given, replace nonblanks
+    # with $alt
+    if ( defined $alt )
+    {
+        $rule =~ s/(.)/$1 eq ' ' ? $char : $alt/ge;
+    }
+    else
+    {
+        $rule =~ s/ /$char/g if $char ne ' ';
+    }
+
+    return $rule;
+}
+
+# build a rule line
+sub _rule {
+    my $tb = shift;
+
+    return + (!$tb->width) ? '' : $tb->_positive_width_rule(@_);
+}
+
+sub _positive_width_rule
+{
+    my ($tb, $in_body, $char, $alt) = @_;
+
+    my $rule = $tb->_assemble_line( $in_body, $tb->_blank,
+        ((ref($char) eq "CODE") ? 1 : 0),
+    );
+
+    return $tb->_render_rule($rule, $char, $alt);
+}
+
+sub _render_rule
+{
+    my ($tb, $rule, $char, $alt) = @_;
+
+    if (ref($char) eq "CODE")
+    {
+        return $tb->_render_rule_with_callbacks($rule, $char, $alt);
+    }
+    else
+    {
+        _default_if_empty(\$char, ' ');
+
+        return $tb->_text_rule($rule, $char, $alt);
+    }
+}
+
+sub _get_fixed_len_string
+{
+    my ($s, $len) = @_;
+
+    $s  = substr($s, 0, $len);
+    $s .= ' ' x ($len - length($s));
+
+    return $s;
+}
+
+sub _render_rule_with_callbacks
+{
+    my ($tb, $rule, $char, $alt) = @_;
+
+    my %callbacks =
+    (
+        'char' => { cb => $char, idx => 0, },
+        'alt' => { cb => $alt, idx => 0, },
+    );
+
+    my $calc_substitution = sub {
+        my $s = shift;
+
+        my $len = length($s);
+
+        my $which = (($s =~ /\A /) ? 'char' : 'alt');
+        my $rec = $callbacks{$which};
+
+        return _get_fixed_len_string(
+            scalar ($rec->{cb}->($rec->{idx}++, $len)),
+            $len,
+        );
+    };
+
+    $rule =~ s/((.)\2*)/$calc_substitution->($1)/ge;
+
+    return $rule;
+}
+
+sub rule {
+    my $tb = shift;
+    return $tb->_rule( 0, @_);
+}
+
+sub body_rule {
+    my $tb = shift;
+    return $tb->_rule( 1, @_);
+}
+
+### warning behavior
+use Carp;
+
+{
+    my ( $warn, $fatal) = ( 0, 0);
+
+    sub warnings
+    {
+        # Ignore the class/object.
+        my (undef, $toggle) = @_;
+
+        $toggle ||= 'on';
+        if ( $toggle eq 'off' )
+        {
+            ($warn, $fatal) = (0, 0);
+        }
+        elsif ( $toggle eq 'fatal' )
+        {
+            ($warn, $fatal) = (1, 1);
+        }
+        else
+        {
+            ($warn, $fatal) = (1, 0);
+        }
+        return $fatal ? 'fatal' : $warn ? 'on' : 'off';
+    }
+
+    sub _warn
+    {
+        my $msg = shift;
+
+        return unless $warn;
+
+        if ($fatal)
+        {
+            croak( $msg)
+        }
+
+        carp( $msg);
+
+        return;
+    }
+}
+
+
+#__END__
+########################################### main pod documentation begin ##
+
+
+#Shlomi Fish, L<http://www.shlomifish.org/> - CPAN ID: "SHLOMIF".
+
+# ORIGINAL AUTHOR
+
+    #Anno Siegel
+    #CPAN ID: ANNO
+    #siegel@zrz.tu-berlin.de
+    #http://www.tu-berlin.de/~siegel
+
+#Copyright (c) 2002 Anno Siegel. All rights reserved.
+#This program is free software; you can redistribute
+#it and/or modify it under the terms of the ISC license.
+
+#(This program had been licensed under the same terms as Perl itself up to
+#version 1.118 released on 2011, and was relicensed by permission of its
+#originator).
+
+#The full text of the license can be found in the
+#LICENSE file included with this module.
+
+#1;
+
+###########################################################################
+########## MAIN PACKAGE ######################## tscan ####################
+###########################################################################
+
+# Written by Russell Bunch (rbunch@cray.com)
+package main;
+use strict;
+use warnings;
+use Pod::Usage;
+use Data::Dumper;
+use Getopt::Long qw(:config bundling);
+use File::Basename;
+use Carp;
+use Switch 'fallthrough';
+
+# Error check for valid number of args before doing anything
+# Would prefer a better way to do this but for now this is the usage variable
+my $usage = "Usage: tscan -p [package] -l [\"tst90 line\"] -t [test] -z [configs]
+             -v [version] -h [hosts] -u [users] -a [arch]
+             -w [weeks] -d [days] -y [years] -m [months] -b -f -c
+             <ftn|cc|CC>
+Options:
+    -p  package     : Required. Name of package to scan. 'cc_openacc_20',
+                      'cc_openacc_20.ar', and 'openacc_20' are acceptable
+                      naming conventions. The last one would require the
+                      language to be specified as a trailing argument. See
+                      below.
+    -t  TEST        : Required. Name of the sought test. May only specify one
+                      test.
+    -l \"tst90 line\" : Give a tst90 line in quotes to be picked apart to make a
+                      query. Can be given with other options such as '-v 83'
+                      after the end quote.
+    -z  CONFIGS     : Return records using given CONFIGS. Specify multiple as:
+                      > -z x86.cfg -z aprun.cfg
+                      Can specify with or without '.cfg' extension and may be
+                      expressed with or without the space
+                      i.e. (-zaprun or -z aprun).
+    -v VERSION      : Return records ran with VERSION (8.4 or 84 are acceptable
+                      naming conventions).
+    -h HOSTS        : Return records ran on HOSTS. Specify multiple as:
+                      -h pe03 -h kaibab
+    -u USERS        : Return records ran by USERS. Specify multiple as:
+                      -u rlf -u cr
+    -a ARCH         : Return records pertaining to specified architecture.
+    -c              : Only return records if they were ran with the core.list
+    -f              : Only look for failures.
+    -b              : Brief output. Suppress config files, line numbers, and
+                      version strings from the output table.
+    -w, -d, -m, -y  : Tells the scanner how far back to look in weeks, days,
+                      months, and years. Can use any combination.
+                      Thus '-w 3 -d 5' would go back 3 weeks and 5 days from
+                      today's date.
+    <ftn|cc|CC>     : Semi-Optional. If the compiler language is left off of
+                      the archive you can specify ftn, cc, or CC here
+
+For more information use 'tscan --man'
+";
+die $usage if @ARGV < 1;
+
+# VARS
+# Create all the global variables here
+
+# Doc args
+my ($help, $man);
+
+# T90 args
+my ($given_arch, $given_cv, $given_host, $used_core, $only_failures, $package, $test, $compact, $more, $t90line, $lang);
+my (@given_configs, @given_users, @given_hosts);
+
+# Time args
+my ($udays, $uweeks, $umonths, $uyears);
+$udays = $uweeks = $umonths = $uyears = 0;
+my $default_msg = "";
+
+# SETUP
+# Grab the arguments and run through several checks that make sure we have a valid scan to avoid wasting time
+# TODO: Consolidate!
+# Everything below GetOptions, up to '# RUN SCAN' could be made into a setup() submodule. Then right above the
+# call to scanForTests() we would just call setup(). This would just make the actual procedure more clear instead
+# of wading through all this setup code to see where we actually run scanForTests. Addtionally this would mean that
+# all the setup code can go to the bottom because submodules do not need to be defined before their invocation.
+GetOptions(
+    'help|?'  =>  \$help,
+    man       =>  \$man,
+
+    'p=s'     =>  \$package,
+    't=s'     =>  \$test,
+    'z=s'     =>  \@given_configs,
+    'v=s'     =>  \$given_cv,
+    'h=s'     =>  \@given_hosts,
+    'a=s'     =>  \$given_arch,
+    'l=s'     =>  \$t90line,
+    'u=s'     =>  \@given_users,
+    c         =>  \$used_core,
+    f         =>  \$only_failures,
+    b         =>  \$compact,
+    e         =>  \$more,
+
+    'd=i'     =>  \$udays,
+    'w=i'     =>  \$uweeks,
+    'm=i'     =>  \$umonths,
+    'y=i'     =>  \$uyears,
+) or pod2usage(2);
+pod2usage(1) if $help;
+pod2usage(
+    exitval => 0,
+    verbose => 2,
+) if $man;
+
+# First, check if a t90 line was given. If so, grab what we can from it and store the
+# information in the same variables that would be set had the user manually specified
+# each option rather a t90 line.
+unless ($t90line) {
+
+    # Else grab trailing compiler version from ARGV and move on
+    $lang = shift @ARGV if @ARGV;
+} else {
+    my @t90_args = split(" ", $t90line) if $t90line;
+    $lang        = pop(@t90_args);
+    while (@t90_args) {
+        my $arg = shift @t90_args;
+
+        # TODO: Remove Extra Cases
+        # The two -z cases could be combined into one, the regex should be changed to
+        # include simply check for 0 or 1 spaces between -z and the cfg file.
+        switch ($arg) {
+            case m/-p/  { $package = shift @t90_args;}
+            case m/-t/  { $test  = shift @t90_args; }
+
+            # Handle '-z file.cfg'
+            case m/^-z$/  { push(@given_configs, shift @t90_args); }
+
+            # Handle '-zfile.cfg' (not cleaned here but cleaned later)
+            case m/-z[\w*\d*]/ { push(@given_configs, $arg); }
+        }
+    }
+}
+
+# TODO: Multi Test Functionality
+# Could be useful if this handled more than one test. This would follow the same convention
+# as the other arguments, i.e. "-t t03_20 -t bug_7654321". For now, if more than one is
+# given the script will only use the last one specified.
+
+# Check if minimum arguments of package and test
+unless ($package && $test) {
+    print "Please specify at least package and a test (and a language if none is prepended onto the package)\n";
+    exit(1);
+}
+
+# Strip leading '_' if present
+$package =~ s/^_//;
+
+# Build header for table
+# REVIEW: There is definitely a better way to format this but for now this will do.
+printf("\n**Search Details:\n         Package: %-15s\n            Test: %-30s\n", $package, $test);
+
+# Check if user added '.ar', if not add it here so our find command works
+# REVIEW: Possibly could fail if the .ar convention stops, perhaps after Git integration.
+unless ($package =~ /(\.ar)$/) {
+    $package .= ".ar";
+}
+
+# If the package is language-less then grab it from the trailing argument if given, else exit.
+if ($package !~ /^(cc|f90)/i) {
+
+    # If $lang is empty at this point exit with an error
+    unless ($lang) {
+        print("Exiting.\nNo language specified either in the packagename or with a trailing argument.\n",
+                "Please rerun with either prefixing $package with a language or appending the\nlanguage",
+                " of your choide to the end of your tscan command.\n");
+        exit(1);
+    }
+
+    # Print Lang to header
+    printf("        Language: %-4s\n", $lang);
+
+    # If they said 'ftn' change it to f90 so the find command works
+    # REVIEW: If the naming convention changes where archives use ftn instead of f90 this will cause problems
+    $lang =~ s/ftn/f90/;
+    $package = "$lang\_$package";
+}
+
+# If configs are specified from t90 line or by the user then clean them up
+if (@given_configs) {
+    my $set_configs = join(", ", (&config_cleaner(@given_configs)));
+    printf("       Config(s): %-30s\n", $set_configs);
+}
+
+# Print off given user information
+if (@given_users) {
+    my $set_users = join(", ", (@given_users));
+    printf("         User(s): %-30s\n", $set_users);
+}
+
+# Now that we have what we need lets change into the main archive stats directory
+my $package_path = "/cray/css/compiler/cost/testing/Stats/$package";
+chdir($package_path) or die "Could not change CWD at $package_path: $!";
+
+# Find most recent available version if no compiler version is given.
+my $cv;
+unless ($given_cv) {
+
+    # When grabbing most recent compiler, ignore anything with x
+    $cv = `ls | grep -v -i x | tail -n 1`;
+    chomp($cv);
+    printf("Compiler Version: %-3s (Latest compiler version available in $package\'s stat files)\n", $cv);
+} elsif ($given_cv !~ /\./) {
+
+    # Else, if it is defined check if they put a period in or not, if not add it.
+    $cv = join(".", split("", $given_cv));
+    printf("Compiler Version: %-3s\n", $cv);
+} else {
+    $cv = $given_cv;
+    printf("Compiler Version: %-3s\n", $cv);
+}
+
+# Print off specified host information to the table
+if (@given_hosts) {
+    my $set_hosts = join(", ", (@given_hosts));
+    printf("         Host(s): %-30s\n", $set_hosts);
+}
+
+# TODO: Make Sure This Works :)
+# There aren't many arches, if any, that I can use to test this against. It does indeed grab x86_64 but depending
+# on the convention used for other arch naming, the way this matches with the $given_arch may need to be tweaked in
+# the future (i.e. when ARM hardware comes in).
+my $arch;
+unless ($given_arch) {
+    $arch   = "";
+} else {
+    printf("            Arch: %-6s\n", $given_arch);
+    $arch = $given_arch;
+}
+
+# Figure out our time based on given global chron. args.
+my ($year, $mon, $mday) = &timecalc;
+
+# Get the files we need to scan based on our time
+print("           Since: $year-$mon-$mday$default_msg\n");
+my @files_to_scan = `find $cv/$arch -type f -newermt $year-$mon-$mday 2> /dev/null`;
+
+# Check if find had an error.
+die "ERROR: Could not find stats with specified criteria!!\n\tPackage: $package\n\tCompiler Version: $cv\n\tArch: $arch\n" if ($? != 0);
+
+# Build rest of header
+# REVIEW: Definitely a better way to write this conditional
+if ($used_core || $only_failures) {
+    my $constraints .= "     Constraints: ";
+    if ($used_core) {
+        $constraints .= "CORE_LIST ";
+    }
+    if ($only_failures) {
+        $constraints .= "ONLY_FAILURES "
+    }
+    $constraints .= "\n";
+    print $constraints;
+}
+
+# RUN SCAN
+# Now that setup is done, scan the logs for the specified parameters then print the number of results
+my $num_results = &scanForTests;
+print "$num_results Results\n";
+
+# Cleans config options of -z and .cfg
+sub config_cleaner() {
+    my @configs = @_;
+    my @fixed_configs;
+    foreach my $config (@configs) {
+
+        # Just ignore anything that is only 2 characters starting with a -
+        # FIXME Any flag with more than 1 character isn't caught
+        next if ($config =~ /^-\w{1}/);
+
+        # Remove trailing .cfg and if they don't sperate the z remove that too
+        if ($config =~ s/(-z)//) {
+            $config =~ s/(\.cfg)//;
+            push @fixed_configs, $config;
+        } else {
+            if ($config =~ s/(\.cfg)//) {
+                push @fixed_configs, $config;
+            } else {
+                push @fixed_configs, $config;
+            }
+        }
+    }
+    return @fixed_configs;
+}
+
+# This subroutine does all of our time arithmetic so we grab the right files
+# REVIEW: This occasionally is off by 1 day when going back really far
+sub timecalc {
+
+    # Days of each month
+    my @eomd = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
+
+    # $localtime has our year-month-day.hour.min.sec in index order 5-4-3.2.1.0
+    my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime(time);
+    my $lyear;
+
+    # Four digit year
+    $year += 1900;
+
+    # Check if our current year is a leap year, will check again later after modifications
+    if ((($year % 1996) % 4) == 0) {
+        $eomd[1] = 29;
+        $lyear = 1;
+    }
+
+    # Check everything for the dates and make sure they are consistent/coherent
+    # Default to 2 weeks if nothing else is defined
+    unless ($udays || $uweeks || $umonths || $uyears) {
+    $udays = 14;
+        $default_msg = " (defaulted to 2 weeks)";
+    }
+
+    # CATCH: If user specified weeks, modify $udays
+    $udays += ($uweeks * 7);
+
+    # CATCH: If user inputs over 12 months, convert to years
+    for (; $umonths >= 12; $umonths -= 12) {
+        $uyears++;
+    }
+
+    # Get the month and year set and $mdays ready
+    $year -= $uyears;
+    $mon  -= $umonths;
+    $mday -= $udays;
+
+    # Check if we were at Jan before, if so decrememnt the year and set ourselves to Dec
+    if ($mon < 0) {
+        $mon = 12 + $mon;
+        $year--;
+    }
+
+    # Rollback loop: Now check if mday is negative, if so decrement $mon and find the sum (if using negatives) of $mday and the $eomd[$mon]
+    while ($mday < 1) {
+        $mon--;
+
+        # Check if we were at Jan before, if so decrememnt the year and set ourselves to Dec
+        if ($mon < 0) {
+            $mon = 12 + $mon;
+            $year--;
+
+            # If our February was set to 'leap' set it back now
+            if ($lyear) {
+                undef($lyear);
+                $eomd[1] = 28;
+            } elsif ((($year % 1996) % 4) == 0) {
+                $eomd[1] = 29;
+                $lyear   = 1;
+            }
+        }
+
+        # Now we have the right $mday
+        $mday = ($eomd[$mon] + $mday);
+    }
+
+    # Increment $mon by 1 so it's accurate
+    $mon++;
+
+    # Return
+    return ($year, $mon, $mday);
+}
+
+# scanForTests:
+# This sub. looks through each Stat file based on the setup performed before its invocation.
+# Once invoked, this will read through the head and tail of each Stat file given in
+# @files_to_scan.
+sub scanForTests() {
+
+    # Open each file one at a time and compare them line by line with our test (this is going to be the meat)
+    # This is basically an abridged GREP
+    my ($file, $matched, $head, $tail);
+    my (@head_parts, @file_details);
+    my $found_user;
+    my %results;
+
+    # Preliminary scanning while loop. If the file does not pass all of these checks then
+    # we don't bother parsing the rest of its contents
+    FILE: while (@files_to_scan) {
+
+        # Clear temp vars
+        $matched      = undef;
+
+        # Set Package message
+        $file           = shift @files_to_scan;
+        @file_details   = split("/", $file);
+
+        # Remove the new lines on each detail if they have one
+        foreach my $detail (@file_details) {
+            chomp($detail);
+        }
+
+        # Assign file_details
+        my ($comp, $arch, $date) = @file_details;
+
+        # Check arch and add it to our row if applicable
+        $results{$date}->{'Arch'} = $arch unless ($given_arch);
+
+        # Get head and tail of file
+        $head = `head -n 1 $file`; # Just the tst90 info
+        $tail = `tail -n 30 $file`; # Just the system info
+
+        # If we are looking for core.lists and the current file hadn't used it then skip
+        if (($used_core) && ($head !~ /core\.list/)) {
+                my $deleted_key = delete $results{$date};
+                next FILE;
+        }
+
+        # If the user specified a host name make sure we are on that host else get the host
+        my $num_found = 0;
+        if (@given_hosts) {
+            foreach my $host (@given_hosts) {
+                if ($tail =~ /\b$host\b/i) {
+                    $num_found++;
+
+                    # We do not need to worry about clobbering previously matched host,
+                    # only one host per file
+                    $results{$date}->{'Host'} = $host;
+                }
+            }
+            if ($num_found < 1) {
+                my $deleted_key = delete $results{$date};
+                next FILE;
+            }
+        } else {
+            $tail =~ /(Linux) (\w+)/;
+            $results{$date}->{'Host'} = $2;
+        }
+
+        # Check if it was ran by a given user
+        $num_found = 0;
+        if (@given_users) {
+            foreach my $user (@given_users) {
+                if ($tail =~ /Run by $user, on:/) {
+                    $num_found++;
+
+                    # We do not need to worry about clobbering the previously saved user,
+                    # only should be one user per file ever
+                    $results{$date}->{'User'} = $user;
+                }
+            }
+           if ($num_found < 1) {
+                my $deleted_key = delete $results{$date};
+                next FILE;
+            }
+        } else {
+
+            # Still need to find the user who ran it
+            if ($tail =~ /Run by (\w+), on:/) {
+                $results{$date}->{'User'} = $1;
+            }
+        }
+
+        # Check compiler version
+        $results{$date}->{'CV'} = $comp unless ($cv);
+
+        # Check our specified config file against the Stat file's
+        # Lets get the t90 line and check for matching -z options
+        # Remove everything up until we see 'tst90' and the 
+        # extension of '.intel' or w/e is on there.
+        $head =~ s/(.+)(tst90)(\.\w+)(.*)/$2$4/;
+
+        # Remove the single quotes from the head
+        $head = join("", split("'", $head));
+
+        # Remove all spaces after -z options
+        $head =~ s/(-z)\s{1}/$1/;
+
+        # Index each item into an array
+        @head_parts = split(" ", $head);
+
+        # Scan the configs that are given in the file
+        my @head_configs;
+        while(@head_parts) {
+            my $arg = shift @head_parts;
+
+            # Check if there is a long -z option, if yes shift the next item because it is a config
+            if ($arg =~ /\b-z\b/) {
+                $arg = shift @head_parts;
+                $arg =~ s/.cfg//;
+                push @head_configs, $arg;
+
+            # Check if an option only starts with -z, if so we have a joined flag. i.e. -zx86
+            } elsif ($arg =~ /^-z/) {
+                $arg =~ s/-z//;
+                $arg =~ s/.cfg//;
+                push @head_configs, $arg;
+            }
+        }
+        my $head_configs = join("\n", @head_configs);
+
+        # Now if we want a brief/compact output do not place the value into our hash
+        $results{$date}->{'Config(s)'} = $head_configs unless $compact;
+
+        # Now we have parsed all the configs in the header, compare it against any given configs if given
+        # Converting @head_configs to a hash we can simply check if each element in @given_configs exists
+        $num_found = 0;
+        if (@given_configs) {
+            my %head_configs  = map { $_ => 1 } @head_configs;
+            foreach my $arg (@given_configs) {
+                if (exists($head_configs{$arg})) {
+                    $num_found++;
+                }
+            }
+
+            # If our num_found is less than @given_config's size we didn't find all of them
+            if ($num_found < scalar @given_configs) {
+                my $deleted_key = delete $results{$date};
+                next FILE;
+            }
+        }
+
+        # Now that our preliminary is done we can check for matches
+        open STAT, $file
+            or die "Could not open $file : $!";
+
+        # Start parsing for our test
+        my $line;
+        my $line_num = 0;
+        LINE: while(<STAT>) {
+
+            # If found line with our test check if we are only looking for failures (and if the test failed)
+            $line = $_;
+            $line_num++;
+
+            # If the current line matches the test name the user specified, check if the user only wants failures
+            # and additionally if that test failed (differed)
+            if ((!$matched) && ($line =~ /\b$test\b/)) {
+                if ($only_failures) {
+                    unless ($line =~ /DIFFERS/) {
+
+                        # Since each test is ran once, if it doesn't differ in this Stat file then we should move on
+                        my $deleted_key = delete $results{$date};
+                        next FILE;
+                    }
+                }
+
+                # Store line number
+                $results{$date}->{'Line No.'} = $line_num unless $compact;
+
+                # Grab Compilation Status
+                $line =~ /COMPILATION (\w+)/;
+                if ($1) {
+                    if ($1 eq "N") {
+                        $results{$date}->{'Compilation'} = "$1/A";
+                    } else {
+                        $results{$date}->{'Compilation'} = $1;
+                    }
+                } elsif ($line =~ /SKIPPED/) {
+                    $results{$date}->{'Compilation'} = "SKIPPED";
+                } else {
+                    $results{$date}->{'Compilation'} = "Not caught";
+                }
+
+                # Grab Execution Status
+                $line =~ /EXECUTION (\w+)/;
+                if ($1) {
+                    if ($1 eq "N") {
+                        $results{$date}->{'Execution'} = "$1/A";
+                    } else {
+                        $results{$date}->{'Execution'} = $1;
+                    }
+                } elsif ($line =~ /SKIPPED/) {
+                    $results{$date}->{'Execution'} = "SKIPPED";
+                } else {
+                    $results{$date}->{'Execution'} = "Not caught";
+                }
+                $matched = 1;
+            }
+
+            # Grab version info and check if they want to suppress it (skip if so)
+            elsif (($matched) && ($line =~ /^\w{14}_\w{40}$/) && (! $compact)) {
+                my $ver_str = "$&\n";
+                $results{$date}->{'Version String'} = $ver_str;
+                $matched = undef;
+
+                # Now we are finished. Once the version string is grabbed we can move to the next file
+                close STAT;
+                next FILE;
+            }
+        }
+
+        # Check if we ever had a match, there should always be a execution or compilation key. If no match delete the incomplete key.
+        unless (exists $results{$date}->{'Execution'}) {
+            my $deleted_key = delete $results{$date};
+        }
+    }
+
+    # Count the number of results now that we have them all
+    my $num_results = scalar keys %results;
+
+    # Since all of our entries have the same keys, fetching them from the first result gets us our columns
+    my $first_key = (keys %results)[0];
+
+    # If our first key is null we never found any matches
+    unless ($first_key) {
+        print "No matches found.\n";
+        exit(1);
+    }
+
+    # OPTIMIZE: This code is bad but works.. needs to better sort and organize the table
+    # Set the columns, remove three keys and add them back in later, helps with compact output
+    my $comp_val    = delete $results{$first_key}->{'Compilation'};
+    my $exec_val    = delete $results{$first_key}->{'Execution'};
+    my $line_no_val = delete $results{$first_key}->{'Line No.'};
+    my @main_columns   = keys %{$results{$first_key}};
+    my @other_columns = ('Compilation', 'Execution');
+    $results{$first_key}->{'Compilation'} = $comp_val;
+    $results{$first_key}->{'Execution'}   = $exec_val;
+    if ($line_no_val) {
+        $results{$first_key}->{'Line No.'} = $line_no_val;
+        push @other_columns, 'Line No.';
+    }
+    my @columns = (@main_columns, @other_columns);
+    unshift @columns, "Date";
+
+    my @rule      = qw(- +);
+    my $table   = Text::Table->new(@columns);
+    $table->rule(@rule);
+    $table->body_rule(@rule);
+
+    # For each date in our results, grab the values found for it and load it into our row_data,
+    # finally loading it into our table
+    foreach my $key (sort keys %results) {
+        my $comp_val    = delete $results{$key}->{'Compilation'};
+        my $exec_val    = delete $results{$key}->{'Execution'};
+        my $line_no_val = delete $results{$key}->{'Line No.'};
+        my @row_data = values %{$results{$key}};
+        unshift @row_data, $key;
+        push @row_data, $comp_val;
+        push @row_data, $exec_val;
+        push @row_data, $line_no_val;
+        $table->load(\@row_data);
+        $table->add(' ');   # ADD AN EMPTY Record for spacing
+    }
+
+    # Pretty print it and return the number of results
+    print $table->rule(@rule), $table->title, $table->rule(@rule), $table->body();
+    return $num_results;
+}
+
+###### Documentation ######
+
+=head1 NAME
+
+    Test 90 History Scanner for PE
+
+=head1 SYNOPSIS
+
+    Purpose: Takes a time range and a test name among other things and scans
+             the test results of a given package.
+
+    Usage: tscan -p [package] -l ["tst90 line"] -t [test] -z [configs]
+                 -v [version] -h [hosts] -u [users] -a [arch]
+                 -w [weeks] -d [days] -y [years] -m [months] -b -f -c
+                 <ftn|cc|CC>
+
+    Examples:   tscan -p cc_openacc_20 -t rfe_801196_01 -v 84 -zx86 -a x86_64 cc
+
+                tscan -p openacc_20 -t randomtest -zx86 -z aprun -zpbs.cfg cc
+
+                tscan -p ch13 -t t13_011 -z knl_sim -h pe03 -h pe08hsw -u peint ftn
+
+                tscan -p openacc_20 -t randomtestname -v 8.3 ftn
+
+                tscan -l "tst90 -zx86.cfg -zaprun.cfg -zpbs.cfg
+                          -p berkeley_upc -t berkbug_bug234 cc" -v 83
+
+=over 8
+
+=item B<-?, --help>
+
+=item B<--man>
+
+    Prints full man page.
+
+=back
+
+=head1 DESCRIPTION
+
+    DEFAULTS:
+        -   If no time range is given the tool defaults to the past two
+            weeks of records.
+        -   If no ARCH is given the tool defaults to all available arches.
+        -   If no VERSION is given the tool sets it to the most recent
+            available in the given package.
+
+    -p  package     : Required. Name of package to scan. 'cc_openacc_20',
+                      'cc_openacc_20.ar', and 'openacc_20' are acceptable
+                      naming conventions. The last one would require the
+                      language to be specified as a trailing argument. See
+                      below.
+
+    -t  TEST        : Required. Name of the sought test. May only specify one
+                      test.
+
+    -l "tst90 line" : Give a tst90 line in quotes to be picked apart to make a
+                      query. Can be given with other options such as '-v 83'
+                      after the end quote.
+
+    -z  CONFIGS     : Return records using given CONFIGS. Specify multiple as:
+                      > -z x86.cfg -z aprun.cfg
+                      Can specify with or without '.cfg' extension and may be
+                      expressed with or without the space
+                      i.e. (-zaprun or -z aprun).
+
+    -v VERSION      : Return records ran with VERSION (8.4 or 84 are acceptable
+                      naming conventions).
+
+    -h HOSTS        : Return records ran on HOSTS. Specify multiple as:
+                      -h pe03 -h kaibab
+
+    -u USERS        : Return records ran by USERS. Specify multiple as:
+                      -u rlf -u cr
+
+    -a ARCH         : Return records pertaining to specified architecture.
+
+    -c              : Only return records if they were ran with the core.list
+
+    -f              : Only look for failures.
+
+    -b              : Brief output. Suppress config files, line numbers, and
+                      version strings from the output table.
+
+    -w, -d, -m, -y  : Tells the scanner how far back to look in weeks, days,
+                      months, and years. Can use any combination.
+                      Thus '-w 3 -d 5' would go back 3 weeks and 5 days from
+                      today's date.
+    <ftn|cc|CC>     : Semi-Optional. If the compiler language is left off of
+                      the archive you can specify ftn, cc, or CC here
+
+=head1 AUTHOR
+
+    Written by Russell D. Bunch (rbunch)
+
+=head1 COPYRIGHT AND LICENSE
+
+    Copyright 2015 Cray Inc. All Rights Reserved.
+
+    This script is free software; you can redistribute it
+    and/or modify it under the same terms as Perl 5.10.0.
+
+    Additional Copyrights are specified for included third party
+    modules that are available via CPAN. These modules are:
+
+    Text::Aligner
+    Text::Table
+    Term::ANSIColor
+
+    Each respective copyright is included in this script at their
+    declaration.
+
+    This program is distributed in the hope that it will be
+    useful, but without any warranty; without even the implied
+    warranty of merchantability or fitness for a particular purpose.
+
+=cut
+

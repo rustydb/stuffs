@@ -1,0 +1,9 @@
+There are two executable files written in Perl. They are known to work on unix boxes and have not been tested for windows or other platforms (such as OSX).
+
+Run the server by typing “./server.pl” in a shell. Do the same with “./client.pl” in a separate shell on another machine.
+
+When the server starts it will print out the protocol and host it is being executed on. Following it will announce that it is waiting for a client on port 9054. In addition to this, the server is set register itself on apollo.cselabs.umn.edu every 10 seconds. It will output its registration to the shell.
+
+The client is set to contact apollo.cselabs.umn.edu and retrieve the server name. It then connects to the server and sends 10MB of data 5 times. The file will be stored in the "out/" directory. Thereafter each send, the record is uploaded to the DB. This will also be seen in the shell. At the end it fetches the records from the DB on apollo and prints them to a file called records.txt. I was unable to get this working in time to print to STDOUT, as the carriage returns were giving me trouble. I hope the records.txt suffices.
+
+Note: If you want to see what the serverlist is (because it doesn’t print to STDOUT) you can open clients.pl and read lines 106-109. In summary all that is needed is to uncomment lines 110-114 and comment out lines 115 & 116. This will cause the client to bomb after it gets the server list, but the server list will be dumped into a text file called “servers.txt” which is located in the same working directory. 

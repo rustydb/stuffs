@@ -1,0 +1,77 @@
+#!/usr/bin/ruby
+# April 2015 - Russell Bunch
+#
+# This tool is designed to interface with tst90 @ Cray.
+# tdif scans a specified number of lines of each .dif
+# file present in a local diffs directory. The scanned
+# lines are all saved into the specified output file.
+#
+# This script is called by tst90 upon creating the
+# result.90 files.
+#
+# NOTE: Users can edit parameters in default.cfg in
+# test_bin. The macros are:
+#   {ruby_diff_script}={original_directory}/tdif
+#   {ruby_diff_lines}="10"
+
+header_text = "This file contains the summary of the files from diffs"
+diffs_dir   = "diffs"
+dif_files   = []
+
+# If no arguments given end task, exit.
+if ARGV.empty?
+  exit 2
+end
+
+# If no diffs directory exit, do not make .dif file.
+unless File.exists? diffs_dir
+  exit 127
+end
+
+# Open file to write information from first argument.
+log = File.new ARGV[0], "w+"
+lines_to_scan = ARGV[1].to_i
+
+Dir.entries( diffs_dir ).each do |e|
+  if e == "." || e == ".."
+    next
+  elsif e =~ /\.dif$/
+    dif_files.push "#{diffs_dir}/#{e}"
+  end
+end
+
+# Print header
+header_line = proc do
+  80.times { log.print "&" }
+  log.puts
+end
+2.times { header_line.call }
+log.print "\n#{header_text.center 80}\n\n"
+2.times { header_line.call }
+3.times { log.puts }
+
+# Read through first N lines given by 2nd argument.
+dif_files.each do |f|
+
+  end_lineno     = lines_to_scan
+  ampersand_line = 0
+  file           = File.open f, "r"
+
+  header_line.call
+  file.each do |line|
+    case
+    when line =~ /&{80}/
+      end_lineno     += 1
+      ampersand_line += 1
+      ampersand_line > 3 ? break : next
+    when line !~ /\w/
+      end_lineno += 1
+      next
+    when file.lineno > end_lineno
+      break
+    else
+      log.puts line
+    end
+  end
+  file.close
+end

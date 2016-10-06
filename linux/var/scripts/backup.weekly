@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# config
+trgt1="/media/luna/Babylon/home.weekly"
+#trgt2="/media/luna/Babylon/vmHDD.weekly"
+
+# abort if any of the commands fail
+#set -e
+
+# setup
+todays=$(date +'%Y-%m-%d') # nicely sortable names for backups
+
+#### Jobs ####
+
+# /home
+cd $trgt1
+tar -cvpzf ${todays}.tar.gz --exclude-from="/var/scripts/exclude.txt" --one-file-system /home > /var/log/backup/home.weekly.${todays} 2>&1
+to_delete1=$(ls -r | tail -n +3) # will keep the last backup
+rm -f $to_delete1
+
+# VM's exta storage (we don't follow different file systems in root backup)
+#cd $trgt2
+#tar -cvpzf vmHDD.${todays}.tar.gz --one-file-system /vms > /var/log/backup/vmHDD.${todays} 2>&1
+#to_delete2=$(ls -r | tail -n +3) # will keep the last backup
+#rm -f $to_delete2

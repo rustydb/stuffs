@@ -1,0 +1,24 @@
+#!/bin/bash
+
+case $1 in
+    start)
+        VBoxManage startvm VIRO1 VIRO2 VIRO3 VIRO4 VIROControl --type headless
+        ;;
+    stop)
+        VBoxManage controlvm VIRO1 poweroff
+        VBoxManage controlvm VIRO2 poweroff
+        VBoxManage controlvm VIRO3 poweroff
+        VBoxManage controlvm VIRO4 poweroff
+        VBoxManage controlvm VIROControl poweroff
+        ;;
+    \?)
+        echo "Invalid option: -$OPTARG" >&2
+        exit 1
+        ;;
+    :)
+        echo "Option -$OPTARG requires an argument." >&2
+        exit 1
+        ;;
+esac
+
+

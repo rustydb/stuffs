@@ -1,0 +1,172 @@
+#!/usr/bin/perl
+# April 2015 - Russell Bunch
+# This tool is intended to be used in a cronjob and will
+# clean out all Stat files that are older than six months.
+# WARNING: This is a volatile tool, the files removed will not
+# be recoverable (high chances).
+
+use strict;
+use warnings;
+use Pod::Usage;
+use Getopt::Long qw(:config bundling);
+
+my ($help, $man);
+my ($back_months, $save_version);
+GetOptions(
+    'help|?'    => \$help,
+    'man'       => \$man
+) or pod2usage(2);
+pod2usage(1) if $help;
+pod2usage(
+    exitval => 0,
+    verbose => 2
+) if $man;
+
+# Grab stuff from ARGV: {months to go back} {versions to ignore}
+# Good for macros if this is ran as a cronjob
+if (@ARGV < 1) {
+    $back_months  = 6;
+    #$save_version = 7;
+} elsif (@ARGV == 1) {
+#} elsif (@ARGV == 2) {
+    $back_months  = shift @ARGV;
+    #$save_version = shift @ARGV;
+}
+
+# Setup Stats location and a date from six months earlier
+my $stats_dir = "/cray/css/compiler/cost/testing/Stats/";
+my $log       = $stats_dir . "tclean.log";
+my ($year, $mon, $mday) = &calc_six_months;
+
+# Find files to delete that are not newer than $year-$mon-$mday
+# NOTE: This could take some time if there are a lot of files and it hasn't
+#   been ran before/in a while.
+print "WARNING: This process is volatile and nonreversible but may still be safely interrupted.\n";
+my %files_to_delete = `find $stats_dir -type f -not -newermt $year-$mon-$mday 2> /dev/null`;
+print "tclean has begun removing files and can no longer be safely interrupted\n";
+open LOG, ">", $log
+    or die "Could not open log file: $!";
+
+# Delete all files that are older than six months
+foreach my $file (keys %files_to_delete) {
+
+    # If the file's folder belongs to compiler version 7, 8, or 9, skip
+    $file =~ /(\d\.\d)/;
+    #if ($1 >= $save_version) {
+        #$file =~ s/\/cray\/css\/compiler\/cost\/testing\/Stats\///;
+        #print LOG "Skipping Version $1 for $file";
+        #next;
+    #}
+    chomp $file;
+    unlink $file
+        or warn "Could not unlink $file: $!", print LOG "$!";
+
+    # Strip the Stats path and print to log
+    $file =~ s/\/cray\/css\/compiler\/cost\/testing\/Stats\///;
+    print LOG "Removed: $file\n";
+
+    # DEBUG
+    #print "\nStopping. Please make sure file is removed.\n$file\n";
+    #exit(0);
+}
+close LOG;
+
+# Calculates date that is six months earlier
+sub calc_six_months() {
+
+    # Days of each month
+    my @eomd = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
+    my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime(time);
+    my $lyear;
+
+    # Four digit year
+    $year += 1900;
+
+    # Check if our current year is a leap year, will check again later after modifications
+    if ((($year % 1996) % 4) == 0) {
+        $eomd[1] = 29;
+        $lyear = 1;
+    }
+
+    # Go back 6 months
+    $mon -= $back_months;
+
+    # Check if we were at Jan before, if so decrememnt the year and set ourselves to Dec
+    if ($mon < 0) {
+        $mon = 12 + $mon;
+        $year--;
+    }
+
+    # Rollback loop: Now check if mday is negative, if so decrement $mon and find the sum (if using negatives) of $mday and the $eomd[$mon]
+    while ($mday < 1) {
+        $mon--;
+
+        # Check if we were at Jan before, if so decrememnt the year and set ourselves to Dec
+        if ($mon < 0) {
+            $mon = 12 + $mon;
+            $year--;
+
+            # If our February was set to 'leap' set it back now
+            if ($lyear) {
+                undef($lyear);
+                $eomd[1] = 28;
+            } elsif ((($year % 1996) % 4) == 0) {
+                $eomd[1] = 29;
+                $lyear   = 1;
+            }
+        }
+
+        # Now we have the right $mday
+        $mday = ($eomd[$mon] + $mday);
+    }
+
+    # Increment $mon by 1 so it's accurate
+    $mon++;
+    return ($year, $mon, $mday);
+}
+
+###### Documentation ######
+
+=head1 NAME
+
+    Test 90 History Cleaning Tool
+
+=head1 SYNOPSIS
+
+    Removes all stat files older than six months (by default) from the current
+    date that are contained within /cray/css/compiler/cost/testing/Stats/.
+
+    This currently skips anything pertaining to compiler version 7.0 and up.
+
+    CRON: If this is ran as a cronjob, two arguments may be passed:
+    > tclean {preserve months} {oldest version to preserve}
+    The former is how many months tclean should keep, the latter tells
+    tclean which version is the minimum that it should skip. Thus saying:
+    > tclean 10 6.0
+    would tell tclean to delete anything older than 10 months and if the Stat
+    file belongs to a compiler version 6.0 or newer, that it should keep it
+    regardless if it is older than 10 months.
+
+    WARNING: This is nonreversible! All applicable files will be deleted!
+
+=over 8
+
+=back
+
+=head1 AUTHOR
+
+    Written by Russell D. Bunch (rbunch)
+
+=head1 COPYRIGHT AND LICENSE
+
+    Copyright 2015 Cray Inc. All Rights Reserved.
+
+    This script is free software; you can redistribute it
+    and/or modify it under the same terms as Perl 5.10.0.
+
+    This program is distributed in the hope that it will be
+    useful, but without any warranty; without even the implied
+    warranty of merchantability or fitness for a particular purpose.
+
+=cut
+

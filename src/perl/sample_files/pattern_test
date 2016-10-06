@@ -1,0 +1,29 @@
+#!/usr/bin/perl -w
+
+use strict;
+
+# This next line of code is used when you get to Chapter 9.
+while (<>) {
+    chomp;
+    # If you want to try matching strings which may contain
+    # newlines, here's the trick to use: Uncomment this next
+    # line, then use a pound sign ("#") wherever you mean to
+    # have a newline within your data string.
+    # s/#/\n/g;
+
+    # Answers for things that I think are worth noting
+    # 8-3:
+    #     mine: /\$[a-zA-Z_\-]+/
+    #   theirs: /^\$[A-Za-z_]\w*$/
+    # 8-4:
+    #     mine: :"(
+    #   theres: /\b(\w+)(\s+\1)+\b/
+
+    if (/\/$/) {
+        print "Matched: |$`<$&>$'|\n";
+    } else {
+        print "No match.\n";
+    }
+    s/\/+$//;
+    print "$_\n";
+}

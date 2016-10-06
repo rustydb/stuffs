@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+    <head lang="en">
+        <meta charset="UTF-8">
+        <title>Calendar Input</title>
+        <link rel="stylesheet" type="text/css" href="adRotator.css">
+        <script type="text/javascript" src="adRotator.js"></script>
+    </head>
+    <body>
+        <div id="adTop">
+
+            <img id="adArrowPrev" alt="Previous" src="images/prev_blue.png" onclick="iter.call(this)" onmouseover="arrowHoverOn.call(this)" onmouseout="arrowHoverOff.call(this)"/>
+
+            <a id="adRef" href ='http://sua.umn.edu/events/calendar/event/14015/'>
+                <img id="adBanner" title='Sat, Sep 27 7:00pm' alt="dragon" src="images/dragon.jpg" height='285' width='800' />
+            </a>
+
+            <img id="adArrowNext" alt="Next" src="images/next_blue.png" onclick="iter.call(this)" onmouseover="arrowHoverOn.call(this)" onmouseout="arrowHoverOff.call(this)">
+
+            <a id="adButtons">
+                <!--id is used for the index-->
+                <img id=0 src="images/bullet_blue.png" alt="button0" onclick="manual.call(this)" onmouseover="bulletHoverOn.call(this)" onmouseout="bulletHoverOff.call(this)">
+                <img id=1 src="images/bullet_gray.png" alt="button1" onclick="manual.call(this)" onmouseover="bulletHoverOn.call(this)" onmouseout="bulletHoverOff.call(this)">
+                <img id=2 src="images/bullet_gray.png" alt="button2" onclick="manual.call(this)" onmouseover="bulletHoverOn.call(this)" onmouseout="bulletHoverOff.call(this)">
+            </a>
+
+        </div>
+        <h1 class = "title"><strong>Calendar Input</strong></h1>
+        <!--Nav Bar-->
+        <nav>
+        <a>Calendar</a>
+        <a href="adRotator.html">Input</a>
+        </nav>
+        <form class = "calin" method = "post" action = "adRotator.html" >
+        <!--Form-->
+            <div><label>Event Name:</label>
+                <input name="eventName" type="text"
+                maxlength="64" required>
+                <br>
+                <label>Event Day:</label>
+                <select>
+                    <option value = "Monday">Monday</option>
+                    <option value = "Tuesday">Tuesday</option>
+                    <option value = "Wednesday">Wednesday</option>
+                    <option value = "Thursday">Thursday</option>
+                    <option value = "Friday">Friday</option>
+                    <option value = "Saturday">Saturday</option>
+                    <option value = "Sunday">Sunday</option>
+                </select>
+                <br>
+                <label>Start Time:</label>
+                <input name="startTime" type="time" required/>
+                <br>
+                <label>End Time:</label>
+                <input name="endTime" type="time" required/>
+                <br>
+                <label>Location:</label>
+                <input name="loc" type="text" required/>
+            </div>
+            <br>
+            <div class = "buttons">
+                <input type="submit" value="Submit">
+                <input type="reset" value="Clear">
+            </div>
+        </form>
+    </body>
+</html>

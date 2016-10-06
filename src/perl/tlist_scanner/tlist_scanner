@@ -1,0 +1,359 @@
+#! /usr/bin/perl
+# Written by Russell Bunch September 2014
+#
+
+use strict;
+use warnings;
+use Data::Dumper;
+use Getopt::Long;
+use Pod::Usage;
+use IO::Pipe;
+use Term::ReadKey;
+use File::Basename;
+use lib 'tlist_scanner.libs';
+use WWW::Mechanize;
+
+#***** Globals *****#
+
+my @forms;
+my ($auth_file, @auth);
+my ($man, $help) = 0;
+my ($d, $suppressed);
+my $url = 'http://bugzilla.us.cray.com/buglist.cgi?';
+my (@tlists, @flagged_bugs);
+
+# Keep track of 'bad tests' for optimization
+my %bad_bugs = ();
+
+# Get arguments and parameters and check that arguments are actually given
+die "Usage: ./tlist_scanner -u <auth.txt> [options] [test.list1 test.list2 test.listetc]\n" if @ARGV < 1;
+
+# Open the logs
+open LOG, ">log.main"
+    or die "Could not create log.main";
+
+GetOptions(
+    'help|?'    => \$help,
+    man         => \$man,
+    'u=s'       => \$auth_file,
+    r           => \$d,
+    s           => \$suppressed,
+) or pod2usage(2);
+pod2usage(1) if $help;
+pod2usage(
+    -exitval => 0,
+    -verbose => 2,
+) if $man;
+
+unless ($d) {
+    print LOG "*** DRYRUN ***\n";
+}
+
+# Grab given test archives
+@tlists = @ARGV;
+
+# Open Mechanize browser
+my $bz = WWW::Mechanize->new(
+    autocheck => 1,
+) or die "Could not open Mechanize browser: $!";
+
+# Login
+if (&login == 1) {
+    &login;
+}
+
+# The meat, check the test.list
+print "Parsing:\n";
+foreach my $tl (@tlists) {
+    &parser($tl);
+}
+close LOG;
+print "Done\nCheck results in log files.\n";
+
+#***** Subroutines *****#
+
+# Login subroutine for Bugzilla, attempts to auth file if specified
+sub login {
+    my ($user, $pw);
+
+    # Make sure auth file exists, exit if otherwise
+    $bz->get('http://bugzilla.us.cray.com/query.cgi?GoAheadAndLogIn=1');
+    @forms = $bz->forms();
+    for (my $i = 0; $i <= $#forms; $i++) {
+        if ($forms[$i]->find_input('Bugzilla_login')) {
+            if ($auth_file) {
+                unless (-e $auth_file) {
+                    print "ERROR:\nSpecified credential file: $auth_file could not be accessed.\n\n";
+                    $auth_file = undef;
+                    return(1);
+                }
+                print "Attempting to log into Cray Bugzilla with given credential file: ";
+                open FILE, $auth_file
+                    or die "Could not open $auth_file: $!";
+                while (<FILE>) {
+                    push @auth, $_;
+                }
+                chomp($user = $auth[0]);
+                chomp($pw   = $auth[1]);
+                close FILE;
+                $bz->form_number($i);
+                $bz->field('Bugzilla_login', $user);
+                $bz->field('Bugzilla_password', $pw);
+                $bz->submit_form();
+                if ($bz->content =~ /not valid/) {
+                    print "Login failed.\n";
+                    $auth_file = undef;
+                    return(1);
+                }
+                print "Success.\n";
+                return(0);
+            }
+            $bz->form_number($i);
+            print "Login into Cray Bugzilla\n";
+            print "Cray username: ";
+            chomp($user = <STDIN>);
+            $bz->field('Bugzilla_login', $user);
+            print "Cray password: ";
+            ReadMode('noecho');
+            chomp($pw = <STDIN>);
+            ReadMode('restore');
+            print "\n";
+            $bz->field('Bugzilla_password', $pw);
+            $bz->submit_form();
+            if ($bz->content =~ /not valid/) {
+                print "Login failed.\n";
+                return(1);
+            }
+            return(0);
+        }
+    }
+}
+
+# Parser subroutine reads given test.list line by line
+sub parser {
+    my $path = shift;
+    print "$path\n";
+
+    # Grab the archive for logging purposes
+    my $list = basename($path);
+    my ($new, $old);
+    my ($bid, $status, $flag, $line, $test_name, $test_run, $multi_lined);
+    my @returns;
+    my $lin_num = 0;
+
+    # If we are not in a dry-run, start clobbering
+    if ($d) {
+        print LOG "\nRenaming: $list\nTo: $list.old and ";
+        $new = $list;
+        $old = $list . ".old";
+        rename $list, $old;
+        open OUT, ">$new"
+            or die "Could not create new $list: $!";
+        open SUITE, $old
+            or die "Could not open $old: $!";
+    } else {
+
+        # We are in a dryrun
+        print LOG "Saving changes into 'dry.$list' and ";
+
+        # Open log.archive for writing the new test.list
+        open OUT, ">dry.$list"
+            or die "Could not create log.$list: $!";
+
+        # Open the provided test.list for reading
+        open SUITE, $path
+            or die "Could not open $path: $!";
+    }
+    print LOG "logging to: log.$list\n";
+    open ARCLOG, ">log.$list"
+        or die "Could not open log.$list for writing: $!";
+    LINE: while (<SUITE>) {
+        $line = $_; # Grab the line, $_ will be overwritten
+        $lin_num++;
+
+        # Check if we are on a macro line and skip if we are
+        if (/(!|#)/) {
+            print OUT $line;
+            next LINE;
+        }
+        $status = ""; # Reset our status
+
+
+        # Grab the test name, was getting too complicated for the if re
+        if ($line       =~ /(([\w-]+,*)+):({*\(*\w+\)*}*)/) {
+            if ($test_name) {
+                $test_name = $1;
+            } else {
+                $test_name = $1;
+            }
+            $test_run = $3;
+
+            # Check if we have a Macro test_type
+            if ($test_run =~ /test_type/) {
+                printf LOG "Macro: $test_run on $list from line %3d\n", $lin_num;
+            }
+        }
+        # Else check if we have a multiline test
+        elsif ($line =~ /((\w+,*)+)\\$/) {
+            $test_name .= $1;
+            next LINE;
+        }
+        # If flag is found, check if bug is resolved and grab the test name
+        # This should match first, meaning that it should safely skip Macros in the header
+        if (/({Core_)(\d{6})(})/) {
+            if ($2) {
+                printf ARCLOG "BUG: %d found on LINE: %3d having STATUS: ", $2, $lin_num;
+
+                # If fetch returns 1, skip to next test. Else if we get a status
+                # or a resolution specified in 'sub fetch' break into the if and
+                # print to log.main and replace the test.list line
+                @returns = &fetch($2);
+                if ($returns[0] !~ /1/) {
+                    $status = $returns[0];
+                    $status .= ", $returns[1]" if $returns[1];
+
+                    # Substitute the entire match with nothing
+                    $line =~ s/$1$2$3//;
+                    print OUT $line;
+                    printf ARCLOG "%-20s for %7s TEST: %-50s\n", $status, $test_run, $test_name;
+                    $test_name = "";
+                    next LINE;
+                } else {
+
+                    # This will only happen if the bug is not found or if our if doesn't work
+                    print ARCLOG "Bug could not be found in Bugzilla or subroutine fetch terminated prematurely\n";
+                }
+            } else {
+
+                # Flag was found but probably was for something else
+                print ARCLOG "Flag detected but no bug number associated, found: |$`<$&>$'|\n";
+                print OUT $line;
+                next LINE;
+            }
+        } elsif (/({NotInCore})/) {
+            printf ARCLOG "$1 found on LINE: %3d having STATUS:                      for %7s TEST: %-20s\n", $lin_num, $test_run, $test_name;
+            printf LOG "Stripping $1 on $list from line: %3d\n", $lin_num;
+            $line =~ s/$1//;
+            print OUT $line;
+            $test_name = "";
+            next LINE;
+        } else {
+            print OUT $line;
+            next LINE;
+        }
+    }
+    close SUITE;
+    close OUT;
+}
+
+# Query subroutine to check the status of a given bug
+sub fetch {
+    my $b = shift;
+
+    # Make sure we haven't checked this bug before, if we did just spit out the results from before
+    if (exists $bad_bugs{$b}) {
+        return @{$bad_bugs{$b}};
+    }
+    my $bz_txt;
+    my $bug_status;
+    unless ($suppressed) {
+        $bug_status = qw/<bug_status>(CLOSED|RESOLVED|IN_PROGRESS|CONFIRMED|UNCONFIRMED)/;
+    } else {
+        $bug_status = qw/<bug_status>(CLOSED|RESOLVED|UNCONFIRMED)/;
+    }
+    my $bug_resolu = qw/<resolution>(WONTFIX|INVALID)/;
+
+    # If query is false, the bug number did not exist in Bugzilla
+    if (&query($b)) {
+        print LOG "Could not find $b in BugZilla\n";
+        return(1);
+    }
+    my @returns;
+
+    # If a bug status is matched push the matched status to our return array
+    push(@returns, $1) if ($bz->content =~ $bug_status);
+
+    # If a bug resolution is matched push the matched res. to our return array
+    push(@returns, $1) if ($bz->content =~ $bug_resolu);
+
+    # If we had returns, return the array and store the return with the bug number our
+    # bad_bug hash. Optimized way to avoid checking the same bug again.
+    if (@returns) {
+        $bad_bugs{$b} = [@returns];
+        return @returns;
+    }
+
+    # Else we didn't find anything, return 1 in the array
+    push(@returns, "1");
+    return(@returns);
+}
+
+# Runs the command line query on Bugzilla
+sub query {
+    my $b = shift;
+    my $bug_url = $url . "bug_id=$b%2C&bug_id_type=anyexact&";
+    $bz->get($bug_url);
+    @forms = $bz->forms();
+    for (my $i = 0; $i < $#forms; $i++) {
+
+        # xml is prefixed with # to signal we are looking for a matching id attribute
+        if ($forms[$i]->find_input('#xml')) {
+            $bz->form_number($i + 1);
+            $bz->submit_form();
+        }
+    }
+
+    # Make sure query returned okay
+    #return(1) if ($bz->content =~ /No Bugs found./ || $bz->content =~ /does not exist./);
+    return(1) if ($bz->content =~ /No Bugs found./ || $bz->content =~ /^Bug #$b does not exist\./);
+
+    # Else return 0
+    return(0);
+}
+
+###### Documentation ######
+
+=head1 NAME
+
+    tlist_scanner
+
+=head1 SYNOPSIS
+
+    Use: ./tlist_scanner [-u login file] [-r] [-s] /path/to/test.list
+
+    -u FILE     : Disables log in prompts by allowing user to specify an authority file with
+        their Cray User & Pass on separate lines.
+
+    -r          : Disables 'DRYRUN' and as long as write permissions are granted the given lists will be overwritten
+
+    -s          : Suppresses search, ignoring IN_PROGRESS and CONFIRMED
+
+=over 8
+
+
+=back
+
+=head1 DESCRIPTION
+
+    Purpose: Scans test.lists for tests that are no longer needed by checking the list against Bugzilla
+
+    This script always defaults to 'DRYRUN' and will not clobber the given test.list. For each list
+    given there will be a .dry file for each. These will have the changes, a simple diff command can
+    show you the explicit differences.
+
+    After running there will be a file named 'log.main,' a log for every change made (basically a diff).
+
+    Use: ./tlist_scanner [-u login file] [-r] /path/to/test.list
+
+    -u FILE
+        Disables log in prompts by allowing user to specify an authority file with
+        their Cray User & Pass on separate lines.
+    -r
+        Disables 'DRYRUN' and as long as write permissions are granted the given lists will be overwritten
+
+=head1 AUTHOR
+
+    Written by Russell D. Bunch (rdbunch)
+
+=cut
+

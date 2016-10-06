@@ -1,0 +1,721 @@
+#!/usr/bin/perl
+# Written by Russell Bunch July 2014
+#
+
+use strict;
+use warnings;
+use diagnostics;
+use Carp qw/croak carp/;
+use Fcntl qw/:flock/;
+use Switch qw/fallthrough/;
+use Pod::Usage;
+use File::Path;
+use XML::Simple qw/:strict/;
+use Data::Dumper;
+use Getopt::Long;
+use Term::ReadKey;
+use lib 'testzilla.libs';
+use WWW::Mechanize;
+
+# Globals
+my $i;
+my @forms;
+my ($auth_file, @auth, $success);
+my $base_url = 'http://bugzilla.us.cray.com/buglist.cgi?';
+my ($url, $res_url, $stat_url, $pri_url, $kw_opt_url, $kw_url, $type_url, $bug_url);
+my ($res_opts, $stat_opts, $pri_opt, $kw_opt, @kws, $bug_id);
+my ($man, $help) = 0;
+my (@F_ar, @C_ar, @misc_ar);
+
+# Open the logs
+open LOG, ">>log.main"
+    or die "Could not create log";
+open DEL_LOG, ">>log.del"
+    or die "Could not create log.del";
+
+# Add separators since we are appending
+print LOG       "------TURNOVER------\n";
+print DEL_LOG   "------TURNOVER------\n";
+
+# Get arguments and parameters and check that arguments are actually given
+die "Invalid number of arguments, use -? or -help for help or -man for full documentaton.\n" if @ARGV < 1;
+
+GetOptions(
+    'help|?'    => \$help,
+    man         => \$man,
+    'u=s'       => \$auth_file,
+    'r=s'       => \$res_opts,
+    's=s'       => \$stat_opts,
+    'p=s'       => \$pri_opt,
+    'k=s'       => \$kw_opt,
+    'b=s'       => \$bug_id,
+) or pod2usage(2);
+pod2usage(1) if $help;
+pod2usage(
+    -exitval => 0,
+    -verbose => 2,
+) if $man;
+
+# Start building our URL for mechanize with the root
+$url = $base_url;
+print "Building query based on arguments...\n";
+
+# Build bug specific url if available, else build the query url
+if ($bug_id) {
+    $bug_url = "bug_id=$bug_id%2C&bug_id_type=anyexact&";
+    $url .= $bug_url;
+} else {
+    # If no bug ID is given, assume remaining args are keywords
+    @kws = @ARGV;
+    # Our keyword URL to cat onto $url
+    $kw_url = "keywords=";
+    # We don't want to add a [comma space] to each keyword if there is only 1. This will ruin regular expressions
+    if ((scalar @kws) > 1) {
+        # Otherwise cat a [comma space] to the keyword
+        foreach my $kw (@kws) {
+            $kw_url .= $kw . "%2C%20";
+        }
+    } else {
+        $kw_url .= $kws[0];
+    }
+    # Add the required amp and append the keyword url
+    $kw_url .= "&";
+    $url    .= $kw_url;
+    # Build $kw_opt_url if we were given search options
+    if ($kw_opt) {
+        switch ($kw_opt) {
+            case m/^all$/    {$kw_opt_url = "keywords_type=allwords&";  }
+            case m/^any$/    {$kw_opt_url = "keywords_type=anywords&";   }
+            case m/^none$/   {$kw_opt_url = "keywords_type=nowords&";   }
+            case m/^reg$/    {$kw_opt_url = "keywords_type=regexp&";    }
+            case m/^noreg$/  {$kw_opt_url = "keywords_type=notregexp&"; }
+        }
+        # Then add it to our $url
+        $url        .= $kw_opt_url;
+        $type_url   = "bug_type=BUG&";
+        $url        .= $type_url;
+    } else {
+        # Else choose t he default, 'allwords'
+        $kw_opt_url = "keywords_type=allwords&";
+        # Hardcoded to search for bugs only
+        $type_url   = "bug_type=BUG&";
+        $url        .= $kw_opt_url;
+    }
+}
+
+# Find our resolution options
+if ($res_opts) {
+    switch ($res_opts) {
+        case m/f/    {$res_url .= "resolution=FIXED&";      }
+        case m/i/    {$res_url .= "resolution=INVALID&";    }
+        case m/w/    {$res_url .= "resolution=WONTFIX&";    }
+        case m/d/    {$res_url .= "resolution=DUPLICATE&";  }
+        case m/m/    {$res_url .= "resolution=WORKSFORME&"; }
+    }
+    $url .= $res_url;
+} else {
+    # Default to no resolution, seems to be required
+    $url .= "resolution=---";
+}
+
+# Build the privacy options if specified
+if ($pri_opt) {
+    switch ($pri_opt) {
+        case m/^public$/   {$pri_url = "isprivate=0&"; }
+        case m/^private$/  {$pri_url = "isprivate=1&"; }
+    }
+    $url .= $pri_url;
+}
+
+# Build the status options if psecified
+if ($stat_opts) {
+    switch ($stat_opts) {
+        case m/u/    {$stat_url .= "bug_status=UNCONFIRMED&"; }
+        case m/c/    {$stat_url .= "bug_status=CONFIRMED&";   }
+        case m/i/    {$stat_url .= "bug_status=IN_PROGRESS&"; }
+        case m/r/    {$stat_url .= "bug_status=RESOLVED&";    }
+        case m/l/    {$stat_url .= "bug_status=CLOSED&";      }
+    }
+    $url .= $stat_url;
+}
+
+# Print final URL to log & stdout
+print "Finished building.\nQuery is using URL:\n\n$url\n\n";
+print LOG "URL: $url\n\n";
+
+# Launches Mechanize browser, set safeguard for IO failures
+my $bz = WWW::Mechanize->new( autocheck => 1 )
+    or die "Could not initiate Mechanize browser: $!";
+
+# Login until successful
+until ($success) {
+    &login;
+}
+
+# Run our query on Bugzilla using our open mechanize browser
+&query($bz, $url);
+
+# Prints current page to file for debug, warnings disabled for silence
+open FILE, ">bugzilla.html";
+no warnings('utf8');
+print FILE $bz->content;
+use warnings('utf8');
+close FILE;
+
+# Grab XML and store locally using XML::Simple
+# Force it into an array for easier navigation
+print "Opening XML handle...\n";
+my $xml = new XML::Simple;
+my $ref = $xml->XMLin($bz->content,
+    ForceArray  => 1,
+    KeyAttr     => [],
+);
+print "Done.\n";
+
+# Prints Mechanizes XML format to file
+open FILE, ">bugzilla_perl.xml";
+print FILE Dumper($ref);
+close FILE;
+
+# Begin parsing for code
+&parser;
+
+# Close logs
+close LOG;
+close DEL_LOG;
+
+###### Subroutines ######
+
+# Login subroutine for Bugzilla, attempts to auth file if specified
+sub login {
+    my ($user, $pw, $line);
+    # Make sure auth file exists, exit if otherwise
+    $bz->get('http://bugzilla.us.cray.com/query.cgi?GoAheadAndLogIn=1');
+    # Get the forms from the login page
+    @forms = $bz->forms();
+    for ($i = 0; $i <= $#forms; $i++) {
+        # Find the form used for login
+        if ($forms[$i]->find_input('Bugzilla_login')) {
+            # If the user gave an auth file, check if it exists and attempt to log in
+            if ($auth_file) {
+                unless (-e $auth_file) {
+                    print "ERROR:\nSpecified credential file: $auth_file does not exist or is inaccessable.",
+                            "Perhaps permissions need to be checked?\n\n";
+                    return($success = 0);
+                }
+                print "Attempting to log in with given credential file...\n";
+                open FILE, $auth_file
+                    or die "Could not open $auth_file: $!";
+                # Read file
+                while ($line = <FILE>) {
+                    push @auth, $line;
+                }
+                chomp($user = $auth[0]);
+                chomp($pw   = $auth[1]);
+                close FILE;
+                # Insert credentials into found form and attempt to log in
+                $bz->form_number($i);
+                $bz->field('Bugzilla_login', $user);
+                $bz->field('Bugzilla_password', $pw);
+                $bz->submit_form();
+                if ($bz->content =~ /not valid/) {
+                    print "Login failed.\n";
+                    $auth_file = undef;
+                    return($success = 0);
+                }
+                print "Success.\n";
+                return($success = 1);
+            }
+            # If no auth file or the user was brought here because theirs didn't work, prompt for login info
+            $bz->form_number($i);
+            print "Cray username: ";
+            chomp($user = <STDIN>);
+            $bz->field('Bugzilla_login', $user);
+            print "Cray password: ";
+            # For privacy, hide the echo
+            ReadMode('noecho');
+            chomp($pw = <STDIN>);
+            ReadMode('restore');
+            print "\n";
+            $bz->field('Bugzilla_password', $pw);
+            $bz->submit_form();
+            # Check if login was successful
+            if ($bz->content =~ /not valid/) {
+                print "Login failed.\n";
+                return($success = 0);
+            }
+            return($success = 1);
+        }
+    }
+}
+
+# Runs the command line query on Bugzilla
+sub query {
+    print "Running query...\n";
+    # Use Mechanize to get the $url we built
+    $bz->get($url);
+    # Get the forms so we can look for the XML option
+    @forms = $bz->forms();
+    for ($i = 0; $i < $#forms; $i++) {
+        # try to find an id of xml
+        if ($forms[$i]->find_input('#xml')) {
+            $bz->form_number($i + 1);
+            $bz->submit_form();
+        }
+    }
+    # Make sure query returned okay
+    if ($bz->content =~ /No Bugs found./) {
+        print "Query returned no results.\n";
+        print Dumper($bz->content);
+        exit(1);
+    } else {
+        print "Done.\n";
+    }
+}
+
+# Starts the parsers, creates output directories moves the previous runs to .old
+# and removes the current .old directories
+sub parser {
+    print "Bugs to parse: ", scalar @{$ref->{bug}} . "\n";
+    # Check if .old directories already exist
+    if (-e "Fortran_out.old" || -e "C_out.old") {
+        rmtree "Fortran_out.old";
+        rmtree "C_out.old";
+        print DEL_LOG "Removed old .old directories\n";
+    }
+    # Check if previous output directories exists, if so append '.old'
+    if (-e "Fortran_out" || -e "C_out") {
+        print DEL_LOG "Previous Fortran_out and C_out directories detected, appending .old\n";
+        rename "Fortran_out", "Fortran_out.old";
+        rename "C_out", "C_out.old";
+        mkdir "Fortran_out", 0755
+            or warn "Cannot make Fortran_out directory: $!";
+        mkdir "C_out", 0755
+            or warn "Cannot make Fortran_out directory: $!";
+    } else {
+        # Else make new output directories
+        mkdir "Fortran_out", 0755 or warn "Cannot make Fortran_out directory: $!";
+        mkdir "C_out", 0755 or warn "Cannot make Fortran_out directory: $!";
+    }
+    # Run the Fortran parser
+    &F_parser;
+    # Run the C parser (Depends on F parser)
+    &C_parser;
+    print "Finished parsing.\nAll files are located in C_out and Fortran_out.\n";
+    if (-e "Fortran_out.old" || -e "C_out.old") {
+        print "All the source code from the previous run are in the .old directories,\n",
+        "THESE WILL BE DELETED THE NEXT RUN.\nStore them elsewhere if you would like to preserve them.\n";
+    }
+}
+
+# Parses for Fortran and creates source files in a bug_<bug id>_<comment id>.f90 format
+# If Fortran is not found, the bug is sent to the C array
+sub F_parser {
+    print LOG       "---***F PARSER***---\n";
+    print DEL_LOG   "---***F PARSER***---\n";
+    # Bug vars
+    my ($comment, $cid, $line, $bid, $title);
+    # Parse vars
+    my ($fn, $appending, $mtch_kw, $mtch_kw_name, $indent, $end_fnd, $unsure, ,@header, @code, @prev_mtchs);
+    print "Starting Fortran parser.\n"; #Bugs identified as Fortran: ", scalar @F_ar . "\n";
+    # Building dictionary with normal keywords
+    my @f_rexs  = (
+        'program',
+        'module',
+        'subroutine',
+        'interface',
+    );
+    # Builds directive keyword array
+    my @f_acc_rexs = (
+        'dec',
+        'dir',
+        'acc',
+        'omp',
+    );
+    # Build non-normals
+    my $func_rex    =   qr/^(\s*)(
+                                   INTEGER|
+                                   REAL|
+                                   DOUBLE PRECISION|
+                                   COMPLEX|
+                                   LOGICAL|
+                                   CHARACTER
+                                   )\s*(\w+)*\s+function(\s*\w+)/i;
+    my $comment_rex =   qr/^\s*!+/;
+    my $incl_rex    =   qr/^(\s*)#include("|')\w+\.fh/i;
+    # Move through the XML to get the comments & retrieve bug information
+    BUG: foreach my $bug (@{$ref->{bug}}) {
+        #TODO Grep test list for bug if it exists
+        #TODO If bug exists in testlist already, remove keyword
+        $bid            = $bug->{bug_id}[0];
+        $mtch_kw        = undef;
+        $mtch_kw_name   = undef;
+        $indent         = undef;
+        # Grab the short description and strip unwarranted characters
+        $title          = $bug->{short_desc}[0];
+        $title          =~ s/\//\\\\/g; # Replace / with \
+        # Slurp the header. Make undef each bug as we need to modify bug # and title every time
+        undef @header;
+        # Comment tests made by Robert or CR out of the test.list; per request
+        # This is only done once, since the parsers are chain loaded the C parser doesn't need to
+        # do this again.
+        my $author = $bug->{long_desc}[0]{who}[0]{content};
+        if ($author =~ /cr\@cray\.com/i || $author =~ /rlf\@cray\.com/) {
+            print LOG "Bug: $bid *******   :     : Author was $author. Skipping until feature is implemented...\n";
+            next BUG;
+        }
+        open HEADER, "testzilla.libs/topf"
+            or die "Header source could not be opened: $!";
+        while (<HEADER>) {
+            s/BUG/bug_$bid/;
+            s/DESC/$title/;
+            push @header, $_;
+        }
+        close HEADER;
+        printf LOG "Bug: %d Comment(s): %3s\n", $bid , scalar @{$bug->{long_desc}};
+        # Retrieve comment information
+        COMMENT: foreach my $desc (@{$bug->{long_desc}}) {
+            $appending  = 0;
+            $end_fnd    = 1;
+            $unsure     = 1;
+            $cid        = $desc->{comment_count}[0];
+            # Make cid a double digit
+            if ($cid < 10) { $cid = "0" . $cid };
+            $comment    = $desc->{thetext}[0];
+            $fn         = "Fortran_out/bug_$bid\_$cid.f90";
+            # Set @code to undef, this way if no code is found we can remove the blank test
+            undef @code;
+            undef @prev_mtchs;
+            # Parse current comment
+            LINE: while($comment =~ /([^\n]+)\n?/g) {
+                $line = $1;
+                if ($appending) {
+                    # Assign the default var to line, allows if to check against $_ without using $line =~
+                    $_ = $line;
+                    # We need to check it again against the original matching keyword in case
+                    # a keyword is used in an English statement. If so we simply truncate and resume.
+                    # Logic dictates that if a Fortran KW is found in an English paragraph per my regexs,
+                    # that the following block of code should also match with the same keyword. Why talk about
+                    # modules if you give a subroutine example? Naturally there are cases that this fails.. but still.
+                    # Another catch is if we start with a Fortran include, it's a given that everything before hand
+                    # is garbage.
+                    if($unsure) {
+                        if (/$incl_rex/ || /^$indent$mtch_kw/i) {
+                            undef @code;
+                            undef @prev_mtchs;
+                            printf LOG "Bug: %d Comment   : %3s : Anomoly detected. Correction attempted, misdetection of keyword.\n", $bid, $cid;
+                            $unsure = 0;
+                            push @code, "$line\n";
+                            push @prev_mtchs, $line;
+                            next LINE;
+                        }
+                    }
+                    # Try matching with "end keyword", "keyword end", or "  end."
+                    if (/^$indent(end $mtch_kw_name)/i || /^$indent($mtch_kw_name end)/i) {
+                        push @code, "$line\n\n";
+                        $appending  = 0;
+                        $end_fnd    = 1;
+                        next LINE;
+                    # Try matching unusual statements like "  end" or  "  end module (with no name)."
+                    } elsif (/^$indent(end $mtch_kw)/i || /^$indent(end)$/i) {
+                            push @code, "$line\n\n";
+                            $appending  = 0;
+                            $end_fnd    = 1;
+                            next LINE;
+                    # Else throw it into the file since we aren't don't yet.
+                    } else {
+                        # Disable warning for wide characters
+                        push @code, "$line\n";
+                        next LINE;
+                    }
+                }
+                # If we find a previous declaration, skip to next bug after wrapping up the file. Not case insensitive
+                if (@prev_mtchs) {
+                    foreach my $mtch (@prev_mtchs) {
+                        if ($line =~ /^$mtch/) {
+                            my @tofile =  (@header, @code);
+                            open FILE, ">$fn"
+                                or die "Source output could not be opened: $!";
+                            foreach my $code (@tofile) {
+                                # Temporarily disable warnings for Wide Characters
+                                no warnings('utf8');
+                                print FILE $code;
+                                use warnings;
+                            }
+                            close FILE;
+                            printf LOG "Bug: %d Comment   : %3s : Anomoly detected. Redeclaration found, saving file as is.\n", $bid, $cid;
+                            next BUG;
+                        }
+                    }
+                }
+                # Check for comments
+                if (!$end_fnd) {
+                    if ($line =~ $comment_rex) {
+                        push @code, "$line\n";
+                        next LINE;
+                    }
+                }
+                # Check for an include
+                if (!$end_fnd) {
+                    if ($line =~ $incl_rex) {
+                        printf LOG "Bug: %d Comment   : %3s : Include found. This parser only looks for .fh includes.\n", $bid, $cid;
+                        push @code, "$line\n";
+                        next LINE;
+                    }
+                }
+                # Check for the function statement
+                # Case-insensitive is declared in original regex
+                if ($line =~ $func_rex) {
+                    $indent         = $1;
+                    $mtch_kw        = 'function';
+                    $mtch_kw_name   = 'function' . $2;
+                    $appending      = 1;
+                    $end_fnd        = 0;
+                    push @code, "$line\n";
+                    push @prev_mtchs, $mtch_kw_name;
+                    next LINE;
+                }
+                # Check for normal keywords
+                foreach my $kw (@f_rexs) {
+                    if ($line =~ /^(\s*)$kw(\s*\w+)/i) {
+                        $indent         = $1;
+                        $mtch_kw        = $kw;
+                        $mtch_kw_name   = $kw . $2;
+                        $appending      = 1;
+                        $end_fnd        = 0;
+                        push @code, "$line\n";
+                        push @prev_mtchs, $mtch_kw_name;
+                        next LINE;
+                    }
+                }
+                # Check for directives
+                if (!$end_fnd) {
+                    foreach my $acc_kw (@f_acc_rexs) {
+                        if ($line =~ /^\s*(!|c|\\)\$$acc_kw/i) {
+                            push @code, "$line\n";
+                            next LINE;
+                        }
+                    }
+                }
+            }
+            if (@code && $end_fnd) {
+                my @tofile =  (@header, @code);
+                open FILE, ">$fn"
+                    or die "Source output could not be opened: $!";
+                foreach my $code (@tofile) {
+                    # Temporarily disable warnings for Wide Characters (or just all UTF8 encoding errors)
+                    no warnings('utf8');
+                    print FILE $code;
+                    use warnings;
+                }
+                close FILE;
+                printf LOG "Bug: %d Comment   : %3s : Test made, moving to next bug\n", $bid, $cid;
+                next BUG;
+            } else {
+                push @C_ar, $bug;
+                printf DEL_LOG "Bug: %d Comment   : %3s : No test found\n", $bid, $cid;
+            }
+        }
+    }
+    print "Fortran parsing completed.\n";
+}
+
+# Parses for C\C++ and creates source files in a bug_<bud id>_<comment_id>.c\cpp format
+# TODO Fix redundant comments in log
+sub C_parser {
+    print LOG       "---***C PARSER***---\n";
+    print DEL_LOG   "---***C PARSER***---\n";
+    # Bug vars
+    my ($comment, $cid, $line, $bid, $title);
+    # Parse vars
+    my ($cpp, $fn, $indent, $appending, $prev_line, @header, @code, @prev_mtchs, $end_fnd);
+    print "Starting C parser.\n"; #Bugs identified as C/C++: ", scalar @C_ar . "\n";
+    # Regular expressions for C
+    my $incl_rex            = qr/^#include (<|")(\w+).+("|>)/i;
+    my $decl_rex            = qr/^\S[\w{3,}]+/;
+    my $lcurl_lone_rex      = qr/^{/;
+    my $lcurl_rex           = qr/{$/;
+    my $rcurl_rex           = qr/^}/;
+    my $pragm_rex           = qr/#pragma/i;
+    # Regexs for people with very expanded C code
+    # WARNING: This will not match expanded C code with user defined returned types
+    # Perhaps stop expanding the code so much?
+    my $weird_rexs          = qr/^(void|char|short|int|long|float|double|signed|unsigned)$/i;
+    # Regex to check if any mention of the bug being C++
+    my $cpp_rex             = qr/\.cpp/i;
+    BUG: foreach my $bug (@C_ar) {
+        $bid    = $bug->{bug_id}[0];
+        $indent = undef;
+        $title  = $bug->{short_desc}[0];
+        $title  =~ s/\//\\\\/g; # Replace / with \
+        undef @header;
+        $cpp    = undef;
+        open HEADER, "testzilla.libs/topc"
+            or die "Header source could not be opened: $!";
+        while (<HEADER>) {
+            s/BUG/bug_$bid/;
+            s/DESC/$title/;
+            push @header, $_;
+        }
+        close HEADER;
+        printf LOG "Bug: %d Comment(s): %3s\n", $bid, scalar @{$bug->{long_desc}};
+        COMMENT: foreach my $desc (@{$bug->{long_desc}}) {
+            $appending  = 0;
+            $end_fnd    = 1;
+            #$unsure     = 1;
+            $cid        = $desc->{comment_count}[0];
+            if ($cid < 10) { $cid = "0" . $cid };
+            $comment    = $desc->{thetext}[0];
+            # Append file extension later
+            $fn         = "C_out/bug_$bid\_$cid";
+            undef @code;
+            undef @prev_mtchs;
+            LINE: while ($comment =~ /([^\n]+)\n?/g) {
+                $line = $1;
+                # Check for .cpp
+                if ($line =~ $cpp_rex) {
+                    $cpp = 1;
+                }
+                if ($appending) {
+                    if ($line =~ $rcurl_rex) {
+                        $appending  = 0;
+                        $end_fnd    = 1;
+                        push @code, "$line\n";
+                        next LINE;
+                    } else {
+                        push @code, "$line\n";
+                        next LINE;
+                    }
+                }
+                if ($line =~ $incl_rex) {
+                    $appending  = 1;
+                    $end_fnd    = 0;
+                    push @code, "$line\n";
+                    next LINE;
+                }
+                if ($line =~ $lcurl_lone_rex) {
+                    $appending  = 1;
+                    $end_fnd    = 0;
+                    push @code, "$prev_line\n";
+                    push @code, "$line\n";
+                    next LINE;
+                }
+                if ($line =~ $lcurl_rex && $line =~ $decl_rex) {
+                    $appending  = 1;
+                    $end_fnd    = 0;
+                    push @code, "$line\n";
+                    next LINE;
+                }
+                if ($line =~ $weird_rexs) {
+                    push @code, "$line\n";
+                    next LINE;
+                }
+                if (!$end_fnd) {
+                    if ($line =~ $pragm_rex) {
+                        push @code, "$line\n";
+                        next LINE;
+                    }
+                }
+                $prev_line = $line;
+            }
+            if (@code && $end_fnd) {
+                my @tofile =  (@header, @code);
+                if ($cpp) {
+                    $fn .= ".cpp";
+                } else {
+                    $fn .= ".c";
+                }
+                open FILE, ">$fn"
+                    or die "Source output could not be opened: $!";
+                foreach my $code (@tofile) {
+                    # Temporarily disable warnings for Wide Characters
+                    no warnings('utf8');
+                    print FILE $code;
+                    use warnings;
+                }
+                close FILE;
+                printf LOG "Bug: %d Comment   : %3s : Test made, moving to next bug\n", $bid, $cid;
+                next BUG;
+            } else {
+                printf DEL_LOG "Bug: %d Comment   : %3s : No test found\n", $bid, $cid;
+            }
+        }
+    }
+    print "C\\C++ parsing completed.\n";
+}
+
+###### Documentation ######
+
+=head1 NAME
+
+    Testzilla
+
+=head1 SYNOPSIS
+
+    Purpose: Mines tests that have been posted in comments of bugs on Cray - Bugzilla
+
+    Use: ./testzilla.pl [-u login file] [-r resolution options] [-s status options] [-k keyword options]
+                    [-p privacy] KEYWORDS
+
+    Examples:   ./testzilla.pl -u auth_file.txt -r f -s crl -k all 84_release 84_upgrade
+                ./testzilla.pl -r fiwdm -s ucirl -p public pe_need_test
+                ./testzilla.pl -u auth_file.txt -b 812620
+
+=over 8
+
+=item B<-?, -help>
+
+=item B<-man>
+
+    Prints full man page.
+
+=back
+
+=head1 DESCRIPTION
+
+    -u FILE
+        Disables log in prompts by allowing user to specify an authority file with
+        their Cray User & Pass on separate lines.
+
+    -b BUG
+        Specify a 6 digit bug ID.
+
+    -r OPTIONS
+        Allows user to specify resolution status of bugs.
+        Possible options are:
+            f   - FIXED
+            i   - INVALID
+            w   - WONTFIX
+            d   - DUPLICATE
+            m   - WORKSFORME
+
+    -s OPTIONS
+        Allows user to specify the status of a bug.
+        Possible options are:
+            u   - UNCONFIRMED
+            c   - CONFIRMED
+            i   - IN_PROGRESS
+            r   - RESOLVED
+            l   - CLOSED
+
+    -p OPTION
+        Allows user to specify public or private bugs.
+        Possible options are:
+            public  - Public
+            private - Private
+
+    -k OPTION
+        Allows user to specify how precise the keyword search should be.
+        Possible options are:
+            all     - contains all of the words {Default}
+            any     - contains any of the words
+            none    - contains none of the words
+            reg     - matches regular expression
+            noreg   - does not match regular expression
+
+=head1 AUTHOR
+
+    Written by Russell D. Bunch (Rusty)
+
+=cut
+

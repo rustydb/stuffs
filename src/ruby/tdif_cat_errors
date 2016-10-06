@@ -1,0 +1,147 @@
+#!/usr/bin/ruby
+# April 2015 - Russell Bunch
+#
+# This tool is designed to interface with tst90 @ Cray.
+# tdif scans a specified number of lines of each .dif
+# file present in a local diffs directory. The scanned
+# lines are all saved into the specified output file.
+#
+# This script is called by tst90 upon creating the
+# result.90 files.
+#
+# NOTE: Users can edit parameters in default.cfg in
+# test_bin. The macros are:
+#   {ruby_diff_script}={original_directory}/tdif
+#   {ruby_diff_lines}="10"
+
+summary_header  = "Diff file summary"
+diffs_dir = "diffs"
+dif_files = []
+
+# Define our class for storing found error messages
+class Errors
+  attr_reader :errors
+
+  def initialize
+    @errors = Hash.new
+  end
+
+  def catagorize_error( test, line )
+
+    # Remove the new line at the end
+    # Remove the test name from any error message that also includes a file extension
+    # Remove all line numbers that are printed explicitly as :X:
+    line.chomp!
+    line.gsub!(/#{test}\.\w{2,3}:?/, '')
+    line.gsub!(/:\d+:/, '')
+
+    # Exclude FAIL compilation errors, redundant
+    if line.include? "FAIL compilation"
+      return
+
+    # If the current line exists in our errors append the test name.
+    # Else add the new KVP to errors
+    elsif errors.has_key? line
+      errors[line] = errors[line] + "\n\t#{test}"
+    else
+      errors[line] = "\n\t#{test}"
+    end
+  end
+
+  def print_catagorized_errors
+    to_print = ""
+    errors.each do |key, value|
+      if key.include? "INTERNAL COMPILER ERROR"
+        to_print = "#{key}#{value}\n" + to_print
+      else
+        to_print = to_print + "#{key}#{value}\n"
+      end
+    end
+    synopsis_header = "Synopsis of errors"
+    "#{synopsis_header.center 80}\n" + to_print
+  end
+
+end
+
+# If no arguments given end task, exit.
+if ARGV.empty?
+  exit 2
+end
+
+# If no diffs directory exit, do not make .dif file.
+unless File.exists? diffs_dir
+  exit 127
+end
+
+# Open file to write information from first argument and check how many lines
+# want to scan from the second.
+log = File.new ARGV[0], "w+"
+lines_to_scan = ARGV[1].to_i
+
+errors_to_ignore = ARGV[2] # Future: Argument listing errors to ignore
+
+Dir.entries( diffs_dir ).each do |e|
+  if e == "." || e == ".."
+    next
+  elsif e =~ /\.dif$/
+    dif_files.push "#{diffs_dir}/#{e}"
+  end
+end
+
+# Print header
+header_line = proc do
+  80.times { log.print "&" }
+  log.puts
+end
+2.times { header_line.call }
+log.print "\n#{summary_header.center 80}\n\n"
+2.times { header_line.call }
+3.times { log.puts }
+
+# Initialize our Error class
+errors = Errors.new
+
+# Read through first N lines given by 2nd argument.
+dif_files.each do |f|
+
+  end_lineno     = lines_to_scan
+  ampersand_line = 0
+  file           = File.open f, "r"
+  filename       = File.basename(f, ".dif")
+
+  log.puts
+  header_line.call
+  file.each do |line|
+    case
+    when line =~ /&{80}/
+      end_lineno     += 1
+      ampersand_line += 1
+      ampersand_line > 3 ? break : next
+    when line !~ /\w/
+      end_lineno += 1
+      next
+    else
+      # TODO Check if it's ASSERTION FAILED
+      if line.include? "INTERNAL COMPILER ERROR"
+        line.lstrip!
+        errors.catagorize_error( filename, line )
+      elsif line =~ /^\w/
+        errors.catagorize_error( filename, line )
+      end
+      log.puts line if file.lineno <= end_lineno
+    end
+  end
+  file.close
+end
+
+# Close log and get ready to prepend errors
+log.close
+log = File.open( ARGV[0], "r" )
+lines = log.readlines
+log.close
+lines = [errors.print_catagorized_errors] + lines
+output = File.open( ARGV[0], "w" )
+lines.each do |line|
+  output.write line
+end
+output.close

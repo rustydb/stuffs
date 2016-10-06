@@ -1,0 +1,38 @@
+#!/bin/sh
+
+# By Russell Bunch
+# Starts rtorrent with screen
+
+# Check for binary
+RT=/usr/bin/rtorrent
+test -x $RT || { echo "$RT not installed";
+    if [ "$1" = "stop" ]; then exit 0;
+    else exit 5; fi; }
+
+# Check for existence of config
+RTC=~rusty/.rtorrent.rc
+test -r $RTC || { echo "$RTC does not exist";
+    if [ "$1" = "stop" ]; then exit 0;
+    else exit 6; fi; }
+
+case "$1" in
+    start)
+        echo -n "Starting rtorrent in screen\n"
+        /usr/bin/screen -d -m -S rtorrent /usr/bin/rtorrent
+        ;;
+    stop)
+        echo -n "Shutting down rtorrent in screen\n"
+        /usr/bin/killall -s 2 rtorrent
+        exit 0
+        ;;
+    restart)
+        echo -n "Restarting rtorrent "
+        $0 stop
+        $0 start
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+        ;;
+esac
+
