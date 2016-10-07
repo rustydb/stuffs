@@ -20,7 +20,6 @@ RUN yum -y install \
     php-pecl-memcached \
     php-xml \
     php-gd \
-    msmtp \
     && yum -y update bash \
     && rm -rf /var/cache/yum/* \
     && yum clean all
@@ -77,7 +76,6 @@ RUN sed -i \
 RUN sed -i \
     -e 's~^;date.timezone =$~date.timezone = Europe/Rome~g' \
     -e 's~^;user_ini.filename =$~user_ini.filename =~g' \
-    -e 's~^sendmail_path = /usr/sbin/sendmail -t -i$~sendmail_path = /usr/bin/msmtp -C /etc/msmtprc -t -i~g' \
     /etc/php.ini
 RUN echo '<?php phpinfo(); ?>' > /var/www/html/index.php
 
