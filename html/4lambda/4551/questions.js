@@ -171,30 +171,59 @@ function nextQuestion() {
 }
 
 function grader() {
-    var finalle = $('end');
-    var endImage   = $('endImage');
+    var finalle  = $('end');
+    var endImage = $('endImage');
+    var def      = $('def');
+    var synop    = $('synop');
     // Set display back to on
-    $('endImage').style.display="";
+    endImage.style.display="";
     if (points < 6) {
         // troll
-        finalle.innerHTML = "<h1>Troll</h1>";
-        endImage.src = endImages[0];
+        finalle.innerHTML    = "<h1>You seem to be...  a Troll</h1>";
+        endImage.src         = endImages[0];
+        def.innerHTML      = "Troll: one who posts a deliberately provocative message to a new group or message board " +
+        "with the intention of causing maximum disruption and argument.";
+        synop.innerHTML        = ">This isn't necessarily bad but you may not be making many friends on the Internet - or maybe " +
+        "you are? Albeit trolls have been given a bad reputation they do hold a value on the Internet. A value that" +
+        "is a catalyst for controversy and development. This  may negatively affect some but it can help build character " +
+        "in some (tough love, right?)."
     } else if (points < 11) {
         // mod
-        finalle.innerHTML = "<h1>Moderator</h1>";
-        endImage.src = endImages[1];
+        finalle.innerHTML   = "<h1>It feels like you are a Moderator</h1>";
+        endImage.src        = endImages[1];
+        def.innerHTML     = "Moderator: One who has the job of maintaining order, harmony, and attempts to build consensus " +
+        "(this job may also be unofficial).";
+        synop.innerHTML       = "Maybe you're an offical moderator somewhere, maybe you just really hate when someone uses " +
+        "poor [insert_language_of_choice] online, or maybe you feel justice in the real world should also be dealt with " +
+        "accordingly online. Which ever it may be, thank you. You're probably one of the few reasons why people find " +
+        "safe-havens in certain blogs, subreddits, or similar niches on the Internet.";
     } else if (points < 17) {
         // lurker
-        finalle.innerHTML = "<h1>Lurker</h1>";
-        endImage.src = endImages[2];
+        finalle.innerHTML   = "<h1>You are probably a Lurker</h1>";
+        endImage.src        = endImages[2];
+        def.innerHTML     = "Lurker: Lurker is someone who doesn't usually contribute content to the community but actively" +
+        "observes others.";
+        synop.innerHTML       = "Now this isn't a bad thing. By the 1% rule (which Wikipedia refers to " +
+        "as the rule of thumb pertaining to participation in an Internet community) states that 1% of " +
+        "the users create the content, 9% contribute, and the remaining 90% lurk. However lurkers " +
+        "are usually more careful users of the Internet.";
     } else if (points < 22) {
         // feed fiend
-        finalle.innerHTML = "<h1>Feed Fiend</h1>";
-        endImage.src = endImages[3];
+        finalle.innerHTML   = "<h1>You are sound like a Feed Fiend</h1>";
+        endImage.src        = endImages[3];
+        def.innerHTML     = "Feed Fiend: One that frequently posts and reviews all the other posting of the other users.";
+        synop.innerHTML       = "Otherwise known as, contributors & creators. You sound like you may post a lot or be very active on" +
+        "specific sites. You are what drives the community forward, or backwards, by your content. In " +
+        "fact if you are big enough in one you sites we would say that you are the sites main content."
     } else {
         // activist
-        finalle.innerHTML = "<h1>Activist</h1>";
-        endImage.src = endImages[4];
+        finalle.innerHTML   = "<h1>You are an Activist</h1>";
+        endImage.src        = endImages[4];
+        def.innerHTML     = "Activist: One that wants to convince people on the Internet of their point of view. They tend to " +
+        "respond to a political agenda, stick to posting about a particular organization or company, " +
+        "or perhaps they are only active in one specific community.";
+        synop.innerHTML       = "You probably have or probably will make your own Internet community to rally others " +
+        "one of those things and you are a very strong member in that community.";
     }
 }
 

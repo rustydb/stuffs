@@ -8,8 +8,6 @@
  */
 // Start that session!
 session_start();
-// Load our answer bank
-include("questions.php");
 ?>
 <!DOCTYPE html>
 <html>
@@ -111,56 +109,29 @@ include("questions.php");
             anyone to make something of there own that doesn't have to be limited to their environment or peers - it
             allows us to establish another identity stemming purely from our own will and imagination.
         </p>
-        <h3>The Internet in a nutshell</h3>
-        <p style="text-align: left; text-indent: 2em">
-            For an overview of how the internet works, let's take a look at this website. How you got here is very much
-            like how our Pneumatic Girl sent and received information and materials. You were given a URL and after you
-            hit <kbd>Return</kbd> your browser needed to figure out how to get to that URL, it needed the IP (Internet
-            Protocol) address. For those who are unfamiliar with IP addresses, an IP is exactly the same as a street
-            address but for the Internet. Without the IP you just have a name. Not every computer has an address book of
-            every website so it needs to ask another computer that is already known if it can help find the IP for that
-            URL. Our capsule goes down our tube and once it gets to our assigned address book server (a.k.a. a DNS -
-            Domain Name Server) that server will send the IP tied to that URL back to us. Your browser receives this and
-            makes another request to that IP. From there you are sent to my home PC. My PC hears your request and fires
-            back another capsule with the site, images, audio clips, and styling to your IP address. Upon receiving this
-            your browser displays everything as we intended it (hopefully). Your IP address is displayed in the above
-            greeting, it is what was reported to us when you requested our site - a product of Cavan's & my online identity.
-        </p>
         <h3>Our Online Identity</h3>
         <p style="text-align: left; text-indent: 2em">
             Albeit a little more involved than making a profile on say, Facebook, creating a web page is how Internet
             dwellers first established themselves on the Internet. It wasn't until later when Internet users took those
-            sites a step further and created forums, chat rooms, and social media sites. The Internet exploded and now
-            allowed its users to make several identities. If you couldn't muster the resources to host your own web page,
-            well why not have someone else do it for you? After all it was a lot easier in the early 2000s for new
-            adopters of the internet to create a free website hosted by
-            <span style="font-family: 'Nunito', sans-serif;">
-                MySpace™
-            </span>
-            than pay money for their own web services and domain name. This spurred millions of people to go out and make
-            their profile, their online resume to the world. Several newer sites stemmed from MySpace building on what
-            it had originally gave the world and gave us, the end users, more tools and resources to build our online
-            image. An end does not seem to be in sight and these available materials are growing every day, as do the products
-            people create with them.
+            sites a step further and created forums, chat rooms, and social media sites.
         </p>
         <p style="text-align: left; text-indent: 2em">
             However arrogance still plays its role online just as it does in reality. Regardless of us having the
             ability to create anything we want on the Internet we still fail occasionally to understand how it will be
-            interpreted, similar to how we behave, dress, and voice our opinions in reality. Our behavior and voice in
-            real life are directly comparable to our own posts and our reactions to others. Similarly our dress is like
-            our profile(s), it is how we appear to others. Here we see the great span of personalities where some people
-            try to mimic themselves on the Internet creating a virtual self to broaden their existing identity. Some create
-            identities that are polar opposites of their real live selves. Some do both, whether they intend to or not.
-            This creates our Psycho-social moratorium as we've discussed in class. The opportunity to create one's own
-            environment in which to explore accelerates the rate at which we discover ourselves and develop - this isn't
-            to say that this is a good thing but it is happening nevertheless.
+            interpreted by others, similar to how we behave, dress, and voice our opinions in reality. Our behavior and
+            voice in real life are directly comparable to our own posts and our reactions to others. Similarly our dress
+            is like our profile(s), it is how we appear to others. Here we see the great span of personalities where
+            some people try to mimic themselves on the Internet creating a virtual self to broaden their existing
+            identity. Some create identities that are polar opposites of their real live selves. Some do both, whether
+            they intend to or not. This creates our Psycho-social moratorium as we've discussed in class. The
+            opportunity to create one's own environment in which to explore accelerates the rate at which we discover
+            ourselves and develop - this isn't to say that this is a good thing but it is happening nevertheless.
         </p>
 
         <p style="text-align: left; text-indent: 2em">
-            This leads to our quiz (don't worry, this isn't graded). We want to see where you stand on the Internet, or
-            at least a very general idea of how you may be perceived on the Internet. Presented will be a photo or a text
-            snippet from some site with 5 possible answers. Upon completing a question we will record your answer and
-            give you the result at the end.
+            This leads to our quiz. We want to see where you stand on the Internet, or at least a very general idea of
+            how you may be perceived on the Internet. Presented will be a photo or a text snippet from some site with 5
+            possible answers. Upon completing a question we will record your answer and give you the result at the end.
         </p>
         <h5>To start the quiz, wake Kirby up with a little click</h5>
     </section>
@@ -177,7 +148,7 @@ include("questions.php");
 
         <!-- Javascript and PHP function to print out our quiz questions-->
         <form id="quizForm" onsubmit="event.preventDefault();">
-            <h3>Quiz</h3>
+            <h3>Personality Quiz</h3>
             <img id="quizImage" title="Question" alt="q" src=""/>
             <p id="q">
                 Choose a reaction that best aligns with your own.
@@ -198,6 +169,12 @@ include("questions.php");
             <!--Final result should go here-->
         </p>
         <img id="endImage" title="End" alt="e" src=""/>
+        <p id="def" style="text-align: left; text-indent: 2em">
+            <!--Character description goes here-->
+        </p>
+        <p id="synop" style="text-align: left; text-indent: 2em">
+            <!--Synopsis goes here-->
+        </p>
     </div>
 
 </div>
