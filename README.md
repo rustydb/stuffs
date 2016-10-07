@@ -29,4 +29,6 @@ stuffs.forEach((stuff) => { console.log( stuff.whatIs() ) };
     ├── py              # Python
     └── ruby            # Ruby
 ```
-![alt text](http://i.imgur.com/GvVk095.gif "banana dolphin")
+<p align="center">
+    <img src="http://i.imgur.com/GvVk095.gif" alt="banana dolphin")
+</p>
