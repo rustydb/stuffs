@@ -14,5 +14,6 @@ This directory serves to hold any and all Linux configuration files I use.
 │       └── X11              # X11 mods
 │           └── xorg.conf.d  # X11 mod configs
 └── var                      # /var files
-    └── scripts              # Linux scripts
+    └── 4l                   # 4l area
+        └── scripts          # Scripts!
 ```
