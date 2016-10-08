@@ -1,42 +1,52 @@
 #!/usr/bin/perl
-
+# Description:
+# Remove a user made by adduser.pl.
+# ~rusty
 use strict;
 use warnings;
 use Cwd qw/abs_path/;
+# TODO: Add smbpassword delete for Samba if added to adduser.pl.
 
-my ($user, $answer);
+# Verify user before working code.
+die "Must run as root\n" if $> != 0;
+
+# Globals.
+die "ERROR: Specify username\n" if @ARGV < 1;
+my $user = $ARGV[0];
+my $answer;
 my (@args, @lines);
 
-die "ERROR: Specify username, \"full name\", and email to be sent to.\n" if @ARGV < 1;
-die "Must run as root\n" if $> != 0;
+# Get path.
 my $path = abs_path();
-die "Path was not in /var/scripts but: $path\n" if ("$path" ne '/var/scripts');
-$user = $ARGV[0];
+die "Path was not in /var/4l/scripts but: $path\n" if ("$path" ne '/var/4l/scripts');
+
+# Confirm deletion.
 print "You want to delete user $user? [Y/n]: ";
 if (chomp($answer = <STDIN>) eq "n") {
     print "Canceling\n";
     exit(1);
 }
-# unmount shared drive
+
+# Unmount shared drive.
 @args = ("umount", "/home/$user/openswim");
 if (system(@args) != 0) {
     die "system @args failed $?";
 }
 
-# Remove user and home directory
+# Remove user and home directory.
 undef @args;
 @args = ("userdel", "-r", "$user");
 if (system(@args) != 0) {
     die "system @args failed $?";
 }
 
-# Edit fstab
+# Edit fstab.
 &editfstab($user);
-undef @args;
+print "Done\n";
 
-# fstab subroutine
+# Removes the user from the fstab.
 sub editfstab {
-    my $user = shift;
+    my $removed_user = shift;
     open FILE, "/etc/fstab"
         or die "Could not open fstab: $!";
     @lines = <FILE>;
@@ -46,8 +56,7 @@ sub editfstab {
     open FILE, ">/etc/fstab"
         or die "Could not create new fstab";
     foreach my $line (@lines) {
-        print FILE $line unless ($line =~ /$user/);
+        print FILE $line unless ($line =~ /$removed_user/);
     }
     close FILE;
-    print "Done\n";
 }

@@ -1,19 +1,33 @@
 #! /usr/bin/perl
-
+# Description:
+# Transcribe the names of images auto-stored in Dropbox to the LG naming convention. Useful for restoring photos
+# onto an LG phone with regards to keeping their order.
+# ~rusty
 use strict;
 use warnings;
 use feature qw/ say /;
 use File::Copy;
 
-my $dpbx = "/media/mufasa/Dropbox/Camera Uploads";
+# Setup.
+die ("Need path to Camera Uploads or another photo dir. using the same format!\n") if @ARGV < 1;
+my $dpbx = "$ARGV[0]";
+$dpbx =~ s/\/$//;
 my $toLG = "$dpbx/toLG";
-
+my $waiting = 5;
 opendir(DH, $dpbx);
 my @photos = readdir(DH);
 closedir(DH);
 
-say "Starting...";
-sleep(3);
+# Wait for interupt.
+$| = 1;
+print "Input:$dpbx\nOutput: $toLG\nStarting in...";
+while ($waiting > 0) {
+    print $waiting == 1 ? "$waiting!\n" : "$waiting...";
+    $waiting--;
+    sleep(1);
+}
+
+# Main.
 foreach my $photo (@photos) {
     # skip . and ..
     next if ($photo =~ /^\./);
@@ -32,4 +46,3 @@ foreach my $photo (@photos) {
         or die "Copy failed: $!";
     say "After: $toLG/$new_name";
 }
-
