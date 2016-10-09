@@ -8,7 +8,7 @@ implemented*/
 
 Simply run "make client" and "make server" to build the to decryption programs. The server starts listening on
 which ever port argv[1] is. The client connects to the specified server/port and the files needing decryption (argv[1-3]
-respectivly).
+respectively).
 
 The client reads the files line-by-line into the socket. The socket queues up the lines and decrypted them in whichever
 thread is handling said client. If multiple clients connect, no problem, that's what the other threads are for! Once
