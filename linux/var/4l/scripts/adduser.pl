@@ -1,20 +1,31 @@
 #!/usr/bin/perl
-
+# Description:
+# Add a user to the local system. Sets up a temporary password, the shared mount, and emails them.
+# ~rusty
 use strict;
 use warnings;
 use Cwd qw/abs_path/;
+# TODO: Add smbpassword set for Samba.
 
+# Verify user before working code.
+die "Must run as root\n" if $> != 0;
+
+# Globals.
 my ($NAME, $NEWUSER, $PASSWORD, $EMAIL, $answer);
 my @random = ("A".."Z", "a".."z", 0..9);
 my @args;
 
+# Check args.
 die "ERROR: Specify username, \"full name\", and email to be sent to.\n" if @ARGV < 3;
-die "Must run as root\n" if $> != 0;
-my $path = abs_path();
-die "Path was not in /var/scripts but: $path\n" if ("$path" ne '/var/scripts');
 $NEWUSER = $ARGV[0];
 $NAME    = $ARGV[1];
 $EMAIL   = $ARGV[2];
+
+# Get path.
+my $path = abs_path();
+die "Path was not in /var/4l/scripts but: $path\n" if ("$path" ne '/var/4l/scripts');
+
+# State upcoming processes.
 print "New user name will be $NEWUSER, correct? [Y/n]: ";
 if (chomp($answer = <STDIN>) eq "n") {
     print "Canceling\n";
@@ -30,18 +41,22 @@ if (chomp($answer = <STDIN>) eq "n") {
     print "Canceling\n";
     exit(1);
 }
-# Generate password
+
+# Generate password.
 $PASSWORD .= $random[rand @random] for 1..8;
-# Build argument to make account
+
+# Make the user.
 @args = ("useradd", "-m", "-d", "/home/$NEWUSER", "-s",  "/bin/bash", "-g", "users", "-c", "$NAME", "$NEWUSER");
 if (system(@args) != 0) {
     die "system @args failed $?";
 }
-# Set the password
+
+# Set their password.
 `echo $NEWUSER:$PASSWORD | chpasswd`;
+
 # Prep the welcome message for the email
-open TEMP, "4l_template.txt"
-    or die "Could not open 4l_template.txt: $!";
+open TEMP, "user_mail_template.txt"
+    or die "Could not open user_mail_template.txt: $!";
 open MSG, ">tmp.txt"
     or die "Could not open tmp.txt: $!";
 while(<TEMP>) {
@@ -53,29 +68,26 @@ while(<TEMP>) {
 close MSG;
 close TEMP;
 undef @args;
-# Send email, wouldn't work with system()....
+
+# Send email, assuming ssmtp is configured.
 `ssmtp $EMAIL < tmp.txt`;
-# Expire password for next login
+
+# Expire password for next login.
 @args = ("passwd", "-e", "$NEWUSER");
 if (system(@args) != 0) {
     die "system @args failed $?";
 }
-# Set quota from budz account
-#undef @args;
-#@args = ("edquota", "-p", "budz0016", "-u", "$NEWUSER");
-#if (system(@args) != 0) {
-    #die "system @args failed $?";
-#}
 
-# add way to do smbpassword
-
-# Add openswim to fstab
+# Add openswim to fstab.
+# FIXME: Use better command to prevent duplicates.
 open FILE, ">>/etc/fstab"
     or die "Could not open fstab: $!";
 print FILE "# $NEWUSER\n/media/mufasa/openswim                   /home/$NEWUSER/openswim none    bind         0          0\n";
 close FILE;
+
+# Make the mountpoint.
 mkdir "home/$NEWUSER/openswim";
 
 # Clean up and finish
 unlink "tmp.txt";
-print "done\nRemember to run 'mount -a' as root in order to mount the shared drive\n";
+print "Done.\nRemember to run 'mount -a' as root in order to mount the shared drive!\n";
