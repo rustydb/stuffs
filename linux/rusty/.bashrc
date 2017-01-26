@@ -25,8 +25,8 @@ fi
 if [[ -e "~/perl5/perlbrew/etc/bashrc" ]];then
     source ~/perl5/perlbrew/etc/bashrc
 fi
-if [[ -d "$HOME/.usr/bin" ]];then
-    export PATH="$HOME/.usr/bin:$PATH"
+if [[ -d "$HOME/apps/.bin" ]];then
+    export PATH="$HOME/apps/.bin:$PATH"
 fi
 
 ################
