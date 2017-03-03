@@ -44,7 +44,7 @@ fi
 
 # Checks to see if on FreeBSD or linux
 KERNEL=$(uname)
-if [[ "$KERNEL" == 'Linux' ]] ; then
+if [[ "$KERNEL" == 'Linux' ]] || [[ "$KERNEL" == *"NT"* ]] ; then
     PLATFORM='linux'
 elif [[ "$KERNEL" == 'FreeBSD' ]] ; then
     PLATFORM='freebsd'
@@ -80,7 +80,7 @@ alias sshw="ssh -b \$(ipconfig getifaddr en0)"
 alias yoIlos="wakeonlan -f /rusty/.wakeonlan/ilos.mac"
 
 # Fix ls.
-if [[ $PLATFORM == 'linux' ]]; then
+if [[ $PLATFORM == 'linux' ]] ; then
     alias ll='ls -l --color=auto'
     alias ls='ls --color=auto'
 elif [[ $PLATFORM == 'freebsd' ]]; then
