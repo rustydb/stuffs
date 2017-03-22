@@ -15,15 +15,12 @@
 ####################################
 
 export PATH=$PATH:/usr/sbin:/sbin:
-if [[ -d "$HOME/.rbenv" ]];then
+if [[ -e "$HOME/.rbenv/bin" ]];then
     export PATH="$HOME/.rbenv/bin:$PATH"
     eval "$(rbenv init -)"
 fi
 if [[ -e "~/.passwdrc" ]];then
     source ~/.passwdrc
-fi
-if [[ -e "~/perl5/perlbrew/etc/bashrc" ]];then
-    source ~/perl5/perlbrew/etc/bashrc
 fi
 if [[ -d "$HOME/apps/.bin" ]];then
     export PATH="$HOME/apps/.bin:$PATH"
@@ -37,9 +34,17 @@ fi
 [[ $- == *i* ]] || return
 
 # Enable Bash Completion if script is present.
-B_C=/etc/bash_completion
-if [[ -e "$B_C" ]];then
-    . "$B_C"
+if [[ -e /etc/bash_completion ]];then
+    . /etc/bash_completion
+fi
+if [[ -e /usr/local/bin/brew ]];then
+    BREW_PREFIX="$(brew --prefix)"
+fi
+if [[ -f "$BREW_PREFIX/etc/bash_completion" ]];then
+    . "$BREW_PREFIX/etc/bash_completion"
+fi
+if [[ -e "$HOME/.local/git-completion.bash" ]];then
+    . "$HOME/.local/git-completion.bash"
 fi
 
 # Checks to see if on FreeBSD or linux
