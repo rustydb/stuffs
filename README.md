@@ -4,9 +4,6 @@ Various things I've drafted up for other various things, peruse to your hearts c
 
 ## Things of Stuffs
 
-```javascript
-stuffs.forEach((stuff) => { console.log( stuff.whatIs() ) };
-```
 ```
 ├── docker_images
 │   └── centos:7-lamp   # A CentOS 7 LAMP Image
