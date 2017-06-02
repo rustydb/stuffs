@@ -21,7 +21,7 @@ update: (output, domEl) ->
     color: true
     brighter: false
     inverse: false
-    bars: 100
+    bars: 70
     animated: false
 
   max_rows = settings.bars
@@ -103,7 +103,7 @@ update: (output, domEl) ->
 
 style: """
   left 10px
-  bottom 10px
+  bottom 310px
   width 315px
   height 135px
   border-radius 5px

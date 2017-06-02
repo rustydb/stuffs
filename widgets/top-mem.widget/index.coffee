@@ -3,7 +3,7 @@ command: "ps axo \"rss,pid,ucomm\" | sort -nr | head -n3 | awk '{printf \"%8.0f 
 refreshFrequency: 5000
 
 style: """
-  bottom: 150px
+  bottom: 10px
   left: 10px
   color: #fff
   font-family: Helvetica Neue
