@@ -102,7 +102,7 @@ update: (output, domEl) ->
     i++
 
 style: """
-  right 10px
+  left 10px
   bottom 10px
   width 315px
   height 135px

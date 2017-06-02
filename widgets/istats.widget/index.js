@@ -13,7 +13,7 @@ ui: {
   /* Vertical position in PX, either top or bottom */
   //top: '0',
 
-  bottom: '175',
+  bottom: '310',
 
   /* Horizontal position in PX, either left or right */
   left: '10',
