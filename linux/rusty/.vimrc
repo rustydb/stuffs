@@ -5,6 +5,8 @@ set softtabstop=4   " If softtabstop equals tabstop and expandtab is not set,
                     " always use the appropriate number of spaces.
 set smarttab        " Tab inserted when indenting and/or correct alignment spaces
 set expandtab       " Use spaces when tab key is pressed
+set textwidth=79    " Use 79 text width.
+set fileformat=unix
 set autoindent
 set cindent
 set nosmartindent
@@ -37,20 +39,11 @@ let fortran_have_tabs=1
 let fortran_more_precise=1
 let fortran_do_enddo=1
 " Setup minibugexplorer to use ctrl + arrows and tabs
-let g:miniBufExplMapWindowNavVim = 1
-let g:miniBufExplMapCTabSwitchBufs = 1
-" Binds shift-f and ctrl-f to detecting fortran syntax highlighting for
-" fixed/free
-" nmap <S-F> :set syntax=fortran<CR>:let b:fortran_fixed_source=!b:fortran_fixed_source<CR>:set syntax=text<CR>:set syntax=fortran<CR>
-" nmap <C-F> :filetype detect<CR>
-
-" Binds ctrl-bs to delete a word in insert
-"imap <BS> <C-W>
+let g:miniBufExplMapWindowNavVim=1
+let g:miniBufExplMapCTabSwitchBufs=1
 " Binds ctrl-del delete a word in insert
 imap <C-kDel> <C-O>caw
-
 " starts nerd tree and sets cursor to main window
-"autocmd VimEnter * NERDTree
 autocmd VimEnter * wincmd p
 " Shortcut to toggle NERDTree<F4><F4><F4>
 nmap <F3> :NERDTreeToggle<CR>
@@ -61,20 +54,7 @@ nmap <silent> <c-j> :wincmd j<CR>
 nmap <silent> <c-h> :wincmd h<CR>
 nmap <silent> <c-l> :wincmd l<CR>
 " prevent MBE from opening in unmodifiable buffers, I think
-let g:miniBufExplModSelTargelt = 1
+let g:miniBufExplModSelTargelt=1
 " Stuff for snipMate
 :filetype plugin on
-
-" map Option+Left/Option+Right:
-" for this to work you must have the bindings in Settings > Keyboard set
-" as follows:
-" 'option cursor left' to '\033b'
-" 'option cursor right' to '\033f'
-:map <ESC>f e
-:imap <ESC>b <C-o>b
-:imap <ESC>f <C-o>e
-:cmap <ESlC>f e
-" Spacing to 2 for YAML
-autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
-autocmd FileType yml setlocal ts=2 sts=2 sw=2 expandtab
 
