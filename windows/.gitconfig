@@ -1,0 +1,14 @@
+[user]
+    name = Russell Bunch
+    email = rusty@4lambda.io
+[core]
+    editor = vim
+    eol = lf
+    autocrlf = input
+	excludesfile = C:/Users/rdbun/.gitignore
+[color]
+    ui = auto
+    branch = auto
+    status = auto
+    diff = auto
+
