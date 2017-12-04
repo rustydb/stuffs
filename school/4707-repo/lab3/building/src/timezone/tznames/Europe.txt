@@ -181,7 +181,7 @@ IST      3600 D  # Irish Summer Time
 MEST     7200 D  # Middle Europe Summer Time (not in zic)
 MET      3600    # Middle Europe Time (not in zic)
 METDST   7200 D  # Middle Europe Summer Time (not in zic)
-MEZ      3600    # Mitteleuropäische Zeit (German) (not in zic)
+MEZ      3600    # Mitteleuropï¿½ische Zeit (German) (not in zic)
 MSD     14400 D  # Moscow Daylight Time
                  #     (Europe/Moscow)
 MSK     10800    # Moscow Time

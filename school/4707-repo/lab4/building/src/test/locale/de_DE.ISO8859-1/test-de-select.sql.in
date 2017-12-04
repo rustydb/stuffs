@@ -1,1 +1,1 @@
-SELECT * FROM wordlist WHERE name_de ~* '^Ä.*' ORDER BY name_de;
+SELECT * FROM wordlist WHERE name_de ~* '^ï¿½.*' ORDER BY name_de;

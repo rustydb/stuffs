@@ -1,19 +1,19 @@
 COPY wordlist FROM stdin WITH DELIMITER '|';
-AAA           |ÄÄÄ
-AAAAa         |ÄÄÄÄä
+AAA           |ï¿½ï¿½ï¿½
+AAAAa         |ï¿½ï¿½ï¿½ï¿½ï¿½
 BBBB          |BBBB
 ooooooo       |oooooooo
-uuuu          |üüüü
-UUUUU         |ÜÜÜÜÜ
+uuuu          |ï¿½ï¿½ï¿½ï¿½
+UUUUU         |ï¿½ï¿½ï¿½ï¿½ï¿½
 CCC           |CCCC
-aaaaaa        |ääää
-ßßßßßß        |ßßßßßßß
+aaaaaa        |ï¿½ï¿½ï¿½ï¿½
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½        |ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 aaaaaaa       |aaaaaa
 bbbbbb        |bbbbb
 UU            |UU
-oooooo        |öööööö
+oooooo        |ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 ddddd         |ddddd
-OOOOO         |ÖÖÖÖÖ
+OOOOO         |ï¿½ï¿½ï¿½ï¿½ï¿½
 OOOOOOO       |OOOOOOO
 BBBBBB        |BBBBBBB
 SSSSSSSS      |SSSSSSSS

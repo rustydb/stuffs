@@ -67,7 +67,7 @@ There was no DBI 1.629 release.
     Change DBI's docs to refer to git not svn [H.Merijn Brand]
     Clarify bind_col TYPE attribute is sticky [Martin J. Evans]
     Fixed reference to $sth in selectall_arrayref docs RT#84873
-    Spelling fixes [Ville Skyttä]
+    Spelling fixes [Ville Skyttï¿½]
     Changed $VERSIONs to hardcoded strings [H.Merijn Brand]
 
 =head2 Changes in DBI 1.627 - 16th May 2013
@@ -169,9 +169,9 @@ There was no DBI 1.629 release.
   Optimized driver access to handle data thanks to Dave Mitchell.
     Dave's work on these optimizations was sponsored by Booking.com.
   Optimized fetchall_arrayref with hash slice thanks
-    to Dagfinn Ilmari Mannsåker. RT#76520
+    to Dagfinn Ilmari Mannsï¿½ker. RT#76520
   Allow renaming columns in fetchall_arrayref hash slices
-    thanks to Dagfinn Ilmari Mannsåker. RT#76572
+    thanks to Dagfinn Ilmari Mannsï¿½ker. RT#76572
   Reserved snmp_ and tree_ for DBD::SNMP and DBD::TreeData
 
 =head2 Changes in DBI 1.618 (svn r15170) 25rd February 2012
@@ -219,7 +219,7 @@ There was no DBI 1.629 release.
   Added some more fetchall_arrayref(..., $maxrows) tests (Tim Bunce)
   Clarified docs for fetchall_arrayref called on an inactive handle.
   Clarified docs for clone method (Tim Bunce)
-  Added note to DBI::Profile about async queries (Marcel Grünauer).
+  Added note to DBI::Profile about async queries (Marcel Grï¿½nauer).
   Reserved spatialite_ as a driver prefix for DBD::Spatialite
   Reserved mo_ as a driver prefix for DBD::MO
   Updated link to the SQL Reunion 95 docs, RT69577 (Ash Daminato)
@@ -851,7 +851,7 @@ Jens Rehsack, Martin J. Evans, and H.Merijn Brand for all their contributions.
 
   Fixed DBI::ProxyServer to not create pid files by default.
     References: Ubuntu Security Notice USN-70-1, CAN-2005-0077
-    Thanks to Javier Fernández-Sanguino Peña from the
+    Thanks to Javier Fernï¿½ndez-Sanguino Peï¿½a from the
     Debian Security Audit Project, and Jonathan Leffler.
   Fixed some tests to work with older Test::More versions.
   Fixed setting $DBI::err/errstr in DBI::PurePerl.

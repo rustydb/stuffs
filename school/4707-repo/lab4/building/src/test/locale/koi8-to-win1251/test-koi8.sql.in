@@ -1,53 +1,53 @@
 COPY usastates FROM stdin WITH DELIMITER '|';
-AK|Alaska        |Аляска
-WA|Washington    |Вашингтон
-OR|Oregon        |Орегон
-CA|California    |Калифорния
-NV|Nevada        |Невада
-ID|Idaho         |Айдахо
-UT|Utah          |Юта
-AZ|Arizona       |Аризона
-MT|Montana       |Монтана
-WY|Wyoming       |Вайоминг
-CO|Colorado      |Колорадо
-NM|New Mexico    |Нью-Мексико
-ND|North Dakota  |Северная Дакота
-SD|South Dakota  |Южная Дакота
-NE|Nebraska      |Небраска
-KA|Kansas        |Канзас
-OK|Oklahoma      |Оклахома
-TX|Texas         |Техас
-MN|Minnesota     |Миннесота
-IA|Iowa          |Айова
-MO|Missouri      |Миссури
-AR|Arkansas      |Арканзас
-LA|Louisiana     |Луизиана
-WI|Wisconsin     |Висконсин
-IL|Illinois      |Иллинойс
-IN|Indiana       |Индиана
-MS|Mississippi   |Миссисипи
-AL|Alabama       |Алабама
-MI|Michigan      |Мичиган
-OH|Ohio          |Огайо
-KY|Kentucky      |Кентукки
-TN|Tennessee     |Теннесси
-GA|Georgia       |Джорджия
-FL|Florida       |Флорида
-PA|Pennsylvania  |Пенсильвания
-WV|West Virginia |Западная Вирджиния
-VA|Virginia      |Вирджиния
-NC|North Carolina|Северная Каролина
-SC|South Carolina|Южная Каролина
-NY|New York      |Нью-Йорк
-NJ|New Jersey    |Нью-Джерси
-DE|Delaware      |Делавэр
-MD|Maryland      |Мэриленд
-DC|Washington DC |округ Колумбия (создан специально под столицу)
-VT|Vermont       |Вермонт
-MA|Massachusetts |Массачусетс
-CT|Connecticut   |Коннектикут
-ME|Maine         |Мэн
-NH|New Hampshire |Нью-Гэмпшир
-RI|Rhode Island  |Род-Айленд
+AK|Alaska        |пїЅпїЅпїЅпїЅпїЅпїЅ
+WA|Washington    |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+OR|Oregon        |пїЅпїЅпїЅпїЅпїЅпїЅ
+CA|California    |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+NV|Nevada        |пїЅпїЅпїЅпїЅпїЅпїЅ
+ID|Idaho         |пїЅпїЅпїЅпїЅпїЅпїЅ
+UT|Utah          |пїЅпїЅпїЅ
+AZ|Arizona       |пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+MT|Montana       |пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+WY|Wyoming       |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+CO|Colorado      |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+NM|New Mexico    |пїЅпїЅпїЅ-пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+ND|North Dakota  |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+SD|South Dakota  |пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+NE|Nebraska      |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+KA|Kansas        |пїЅпїЅпїЅпїЅпїЅпїЅ
+OK|Oklahoma      |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+TX|Texas         |пїЅпїЅпїЅпїЅпїЅ
+MN|Minnesota     |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+IA|Iowa          |пїЅпїЅпїЅпїЅпїЅ
+MO|Missouri      |пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+AR|Arkansas      |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+LA|Louisiana     |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+WI|Wisconsin     |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+IL|Illinois      |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+IN|Indiana       |пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+MS|Mississippi   |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+AL|Alabama       |пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+MI|Michigan      |пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+OH|Ohio          |пїЅпїЅпїЅпїЅпїЅ
+KY|Kentucky      |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+TN|Tennessee     |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+GA|Georgia       |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+FL|Florida       |пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+PA|Pennsylvania  |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+WV|West Virginia |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+VA|Virginia      |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+NC|North Carolina|пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+SC|South Carolina|пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+NY|New York      |пїЅпїЅпїЅ-пїЅпїЅпїЅпїЅ
+NJ|New Jersey    |пїЅпїЅпїЅ-пїЅпїЅпїЅпїЅпїЅпїЅ
+DE|Delaware      |пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+MD|Maryland      |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+DC|Washington DC |пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
+VT|Vermont       |пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+MA|Massachusetts |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+CT|Connecticut   |пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+ME|Maine         |пїЅпїЅпїЅ
+NH|New Hampshire |пїЅпїЅпїЅ-пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+RI|Rhode Island  |пїЅпїЅпїЅ-пїЅпїЅпїЅпїЅпїЅпїЅ
 \.
 SELECT * FROM usastates ORDER BY name_ru;

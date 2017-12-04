@@ -1,53 +1,53 @@
 COPY usastates FROM stdin WITH DELIMITER '|';
-AK|Alaska        |Аляска
-WA|Washington    |Вашингтон
-OR|Oregon        |Орегон
-CA|California    |Калифорния
-NV|Nevada        |Невада
-ID|Idaho         |Айдахо
-UT|Utah          |Юта
-AZ|Arizona       |Аризона
-MT|Montana       |Монтана
-WY|Wyoming       |Вайоминг
-CO|Colorado      |Колорадо
-NM|New Mexico    |Нью-Мексико
-ND|North Dakota  |Северная Дакота
-SD|South Dakota  |Южная Дакота
-NE|Nebraska      |Небраска
-KA|Kansas        |Канзас
-OK|Oklahoma      |Оклахома
-TX|Texas         |Техас
-MN|Minnesota     |Миннесота
-IA|Iowa          |Айова
-MO|Missouri      |Миссури
-AR|Arkansas      |Арканзас
-LA|Louisiana     |Луизиана
-WI|Wisconsin     |Висконсин
-IL|Illinois      |Иллинойс
-IN|Indiana       |Индиана
-MS|Mississippi   |Миссисипи
-AL|Alabama       |Алабама
-MI|Michigan      |Мичиган
-OH|Ohio          |Огайо
-KY|Kentucky      |Кентукки
-TN|Tennessee     |Теннесси
-GA|Georgia       |Джорджия
-FL|Florida       |Флорида
-PA|Pennsylvania  |Пенсильвания
-WV|West Virginia |Западная Вирджиния
-VA|Virginia      |Вирджиния
-NC|North Carolina|Северная Каролина
-SC|South Carolina|Южная Каролина
-NY|New York      |Нью-Йорк
-NJ|New Jersey    |Нью-Джерси
-DE|Delaware      |Делавэр
-MD|Maryland      |Мэриленд
-DC|Washington DC |округ Колумбия (создан специально под столицу)
-VT|Vermont       |Вермонт
-MA|Massachusetts |Массачусетс
-CT|Connecticut   |Коннектикут
-ME|Maine         |Мэн
-NH|New Hampshire |Нью-Гэмпшир
-RI|Rhode Island  |Род-Айленд
+AK|Alaska        |О©╫О©╫О©╫О©╫О©╫О©╫
+WA|Washington    |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+OR|Oregon        |О©╫О©╫О©╫О©╫О©╫О©╫
+CA|California    |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+NV|Nevada        |О©╫О©╫О©╫О©╫О©╫О©╫
+ID|Idaho         |О©╫О©╫О©╫О©╫О©╫О©╫
+UT|Utah          |О©╫О©╫О©╫
+AZ|Arizona       |О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+MT|Montana       |О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+WY|Wyoming       |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+CO|Colorado      |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+NM|New Mexico    |О©╫О©╫О©╫-О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+ND|North Dakota  |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫
+SD|South Dakota  |О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫
+NE|Nebraska      |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+KA|Kansas        |О©╫О©╫О©╫О©╫О©╫О©╫
+OK|Oklahoma      |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+TX|Texas         |О©╫О©╫О©╫О©╫О©╫
+MN|Minnesota     |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+IA|Iowa          |О©╫О©╫О©╫О©╫О©╫
+MO|Missouri      |О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+AR|Arkansas      |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+LA|Louisiana     |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+WI|Wisconsin     |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+IL|Illinois      |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+IN|Indiana       |О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+MS|Mississippi   |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+AL|Alabama       |О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+MI|Michigan      |О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+OH|Ohio          |О©╫О©╫О©╫О©╫О©╫
+KY|Kentucky      |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+TN|Tennessee     |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+GA|Georgia       |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+FL|Florida       |О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+PA|Pennsylvania  |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+WV|West Virginia |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+VA|Virginia      |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+NC|North Carolina|О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+SC|South Carolina|О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+NY|New York      |О©╫О©╫О©╫-О©╫О©╫О©╫О©╫
+NJ|New Jersey    |О©╫О©╫О©╫-О©╫О©╫О©╫О©╫О©╫О©╫
+DE|Delaware      |О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+MD|Maryland      |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+DC|Washington DC |О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ (О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫)
+VT|Vermont       |О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+MA|Massachusetts |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+CT|Connecticut   |О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+ME|Maine         |О©╫О©╫О©╫
+NH|New Hampshire |О©╫О©╫О©╫-О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+RI|Rhode Island  |О©╫О©╫О©╫-О©╫О©╫О©╫О©╫О©╫О©╫
 \.
 SELECT * FROM usastates ORDER BY name_ru;

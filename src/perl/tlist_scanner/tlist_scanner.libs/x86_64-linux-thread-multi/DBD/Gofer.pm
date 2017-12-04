@@ -1090,7 +1090,7 @@ See the GoferTransport-http distribution on CPAN: http://search.cpan.org/dist/Go
 
 =head3 Gearman
 
-I know Ask Bjørn Hansen has implemented a transport for the C<gearman> distributed
+I know Ask Bjï¿½rn Hansen has implemented a transport for the C<gearman> distributed
 job system, though it's not on CPAN at the time of writing this.
 
 =head1 CONNECTING

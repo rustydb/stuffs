@@ -1,53 +1,53 @@
 COPY usastates FROM stdin WITH DELIMITER '|';
-AK|Alaska        |Αλάσκα
-WA|Washington    |Γουόσινγκτον
-OR|Oregon        |Ορεγκον
-CA|California    |Καλιφόρνια
-NV|Nevada        |Νεβάδα
-ID|Idaho         |Αϊνταχο
-UT|Utah          |Γιούτα
-AZ|Arizona       |Αριζόνα
-MT|Montana       |Μοντάνα
-WY|Wyoming       |Γουαϊόμινγκ
-CO|Colorado      |Κολοράντο
-NM|New Mexico    |Νέο Μεξικό
-ND|North Dakota  |Βόρεια Ντακότα
-SD|South Dakota  |Νότια Ντακότα
-NE|Nebraska      |Νεμπράσκα
-KA|Kansas        |Κάνσας
-OK|Oklahoma      |Οκλαχόμα
-TX|Texas         |Τέξας
-MN|Minnesota     |Μινεσσότα
-IA|Iowa          |Αϊόβα
-MO|Missouri      |Μισσούρι
-AR|Arkansas      |Αρκανσας
-LA|Louisiana     |Λουϊζιάνα
-WI|Wisconsin     |Γουισκόνσιν
-IL|Illinois      |Ιλλινόις
-IN|Indiana       |Ιντιάνα
-MS|Mississippi   |Μισισσίπι
-AL|Alabama       |Αλαμπάμα
-MI|Michigan      |Μίτσιγκαν
-OH|Ohio          |Οχάιο
-KY|Kentucky      |Κεντάκι
-TN|Tennessee     |Τεννεσί
-GA|Georgia       |Τζόρτζια
-FL|Florida       |Φλόριντα
-PA|Pennsylvania  |Πεννσυλβάνια
-WV|West Virginia |Γουεστ Βιρτζίνια
-VA|Virginia      |Βιρτζίνια
-NC|North Carolina|Βόρεια Καρολίνα
-SC|South Carolina|Νότια Καρολίνα
-NY|New York      |Νέα Υόρκη
-NJ|New Jersey    |Νέα Υερσέη
-DE|Delaware      |Ντέλαγουερ
-MD|Maryland      |Μαίρυλαντ
-DC|Washington DC |Γουόσινγτον Ντί Σι
-VT|Vermont       |Βερμόντ
-MA|Massachusetts |Μασσαχουσέτη
-CT|Connecticut   |Κοννέκτικατ
-ME|Maine         |Μέιν
-NH|New Hampshire |Νέο Χάμπσαϊρ
-RI|Rhode Island  |Ρόουντ Αϊλαντ
+AK|Alaska        |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+WA|Washington    |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+OR|Oregon        |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+CA|California    |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+NV|Nevada        |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+ID|Idaho         |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+UT|Utah          |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+AZ|Arizona       |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+MT|Montana       |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+WY|Wyoming       |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+CO|Colorado      |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+NM|New Mexico    |οΏ½οΏ½οΏ½ οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+ND|North Dakota  |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½ οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+SD|South Dakota  |οΏ½οΏ½οΏ½οΏ½οΏ½ οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+NE|Nebraska      |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+KA|Kansas        |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+OK|Oklahoma      |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+TX|Texas         |οΏ½οΏ½οΏ½οΏ½οΏ½
+MN|Minnesota     |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+IA|Iowa          |οΏ½οΏ½οΏ½οΏ½οΏ½
+MO|Missouri      |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+AR|Arkansas      |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+LA|Louisiana     |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+WI|Wisconsin     |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+IL|Illinois      |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+IN|Indiana       |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+MS|Mississippi   |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+AL|Alabama       |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+MI|Michigan      |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+OH|Ohio          |οΏ½οΏ½οΏ½οΏ½οΏ½
+KY|Kentucky      |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+TN|Tennessee     |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+GA|Georgia       |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+FL|Florida       |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+PA|Pennsylvania  |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+WV|West Virginia |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½ οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+VA|Virginia      |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+NC|North Carolina|οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½ οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+SC|South Carolina|οΏ½οΏ½οΏ½οΏ½οΏ½ οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+NY|New York      |οΏ½οΏ½οΏ½ οΏ½οΏ½οΏ½οΏ½οΏ½
+NJ|New Jersey    |οΏ½οΏ½οΏ½ οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+DE|Delaware      |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+MD|Maryland      |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+DC|Washington DC |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½ οΏ½οΏ½οΏ½ οΏ½οΏ½
+VT|Vermont       |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+MA|Massachusetts |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+CT|Connecticut   |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+ME|Maine         |οΏ½οΏ½οΏ½οΏ½
+NH|New Hampshire |οΏ½οΏ½οΏ½ οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
+RI|Rhode Island  |οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½ οΏ½οΏ½οΏ½οΏ½οΏ½οΏ½
 \.
 SELECT * FROM usastates ORDER BY name_gr;

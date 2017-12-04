@@ -6,13 +6,13 @@ SELECT getdatabaseencoding();
 SET client_encoding TO 'KOI8';
 
 SELECT unaccent('foobar');
-SELECT unaccent('£ÌËÁ');
-SELECT unaccent('³öéë');
+SELECT unaccent('ï¿½ï¿½ï¿½ï¿½');
+SELECT unaccent('ï¿½ï¿½ï¿½ï¿½');
 
 SELECT unaccent('unaccent', 'foobar');
-SELECT unaccent('unaccent', '£ÌËÁ');
-SELECT unaccent('unaccent', '³öéë');
+SELECT unaccent('unaccent', 'ï¿½ï¿½ï¿½ï¿½');
+SELECT unaccent('unaccent', 'ï¿½ï¿½ï¿½ï¿½');
 
 SELECT ts_lexize('unaccent', 'foobar');
-SELECT ts_lexize('unaccent', '£ÌËÁ');
-SELECT ts_lexize('unaccent', '³öéë');
+SELECT ts_lexize('unaccent', 'ï¿½ï¿½ï¿½ï¿½');
+SELECT ts_lexize('unaccent', 'ï¿½ï¿½ï¿½ï¿½');
