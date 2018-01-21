@@ -132,7 +132,7 @@ function parse_git_branch {
 if [ "$PS1" ]; then
    if [ $UID -eq "0" ]; then
       case "$TERM" in
-      xterm*|rxvt*)
+      xterm*|rxvt*|cygwin)
         PS1='\n\[\e]2;\u@\h:\w\a\e[1m\e[31m\]\[\e[31m\]\u\[\e[37m\]@\[\e[35m\]\h\[\e[37m\]:\[\e[32m\]\w\[\e[33m\]\[\e[31m\] #\[\e[0m\] '
         ;;
       *)
@@ -141,7 +141,7 @@ if [ "$PS1" ]; then
       esac
    else
       case "$TERM" in
-      xterm*|rxvt*)
+      xterm*|rxvt*|cygwin)
         PS1='[\!]\[\e[1;32m\]\u\[\e[37m\]@\[\e[35m\]\h\[\e[37m\]:\[\e[36m\]\w\[\e[33m\]\[\e[33m\]>\[\e[0m\] \[\e[37m\]\[\e[0m\]'
         PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME%%.*}:${PWD/$HOME/~}\007"'
         ;;
@@ -153,3 +153,11 @@ if [ "$PS1" ]; then
 fi
 export PS1
 
+############
+# Windows. #
+############
+
+if [[ "$TERM" == 'cygwin' ]]; then
+    export SHELLOPTS
+    set -o igncr
+fi
