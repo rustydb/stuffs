@@ -22,7 +22,6 @@ set t_Co=256        " Sets vim to 256 colors
 set cinkeys=0{,0},0),:,0%,!^F,o,O,e
 au BufNewFile,BufRead *.html    set syntax=mason
 au BufNewFile,BufRead *.comp    set syntax=mason
-"au BufNewFile,BufRead cf.*      set syntax=cfengine
 autocmd BufWinEnter * match ExtraWhitespace /\s\+$\| \+ze\t/
 autocmd ColorScheme * highlight ExtraWhitespace ctermbg=red guibg=red
 set background=dark
@@ -57,4 +56,10 @@ nmap <silent> <c-l> :wincmd l<CR>
 let g:miniBufExplModSelTargelt=1
 " Stuff for snipMate
 :filetype plugin on
+" Spacing to 2 for YAML
+autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
+autocmd FileType yml setlocal ts=2 sts=2 sw=2 expandtab
+" Arduino
+au BufRead,BufNewFile *.pde set filetype=arduino
+au BufRead,BufNewFile *.ino set filetype=arduino
 
