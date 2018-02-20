@@ -10,25 +10,15 @@
 #  dB' db   dBP  BB    dBP dBP  dBP
 # dBBBBP'  dBBBBBBdBBBBP' dBP  dBP
 
-####################################
-#           Path stuffs            #
-####################################
-
-export PATH=$PATH:/usr/sbin:/sbin:
-if [[ -e "$HOME/.rbenv/bin" ]];then
-    export PATH="$HOME/.rbenv/bin:$PATH"
-    eval "$(rbenv init -)"
-fi
-if [[ -e "~/.passwdrc" ]];then
-    source ~/.passwdrc
-fi
-if [[ -d "$HOME/apps/.bin" ]];then
-    export PATH="$HOME/apps/.bin:$PATH"
-fi
-
 ################
 # Startup/Misc #
 ################
+
+# Windows setup for cygwin to honor line endings and such.
+if [[ "$TERM" == 'cygwin' ]]; then
+    export SHELLOPTS
+    set -o igncr
+fi
 
 # If not running interactively then don't do anything else but pathzz.
 [[ $- == *i* ]] || return
@@ -59,9 +49,25 @@ elif [[ "$KERNEL" == 'Darwin' ]] ; then
     PLATFORM='freebsd' # Treat it the same way
 fi
 
-############################
-# General area for aliases #
-############################
+########
+# Path #
+########
+
+export PATH=$PATH:/usr/sbin:/sbin:
+if [[ -e "$HOME/.rbenv/bin" ]];then
+    export PATH="$HOME/.rbenv/bin:$PATH"
+    eval "$(rbenv init -)"
+fi
+if [[ -e "~/.passwdrc" ]];then
+    source ~/.passwdrc
+fi
+if [[ -d "$HOME/apps/.bin" ]];then
+    export PATH="$HOME/apps/.bin:$PATH"
+fi
+
+###########
+# Aliases #
+###########
 
 # Alias for rebooting.
 alias reboots="sudo reboot"
@@ -125,6 +131,13 @@ function parse_git_branch {
 
 }
 
+function rmdc {
+    for c in $(docker ps -a | awk 'NR>1 {print $1}'); do
+        docker rm $@ ${c}
+    done
+}
+
+
 ############
 # PS1      #
 ############
@@ -153,11 +166,3 @@ if [ "$PS1" ]; then
 fi
 export PS1
 
-############
-# Windows. #
-############
-
-if [[ "$TERM" == 'cygwin' ]]; then
-    export SHELLOPTS
-    set -o igncr
-fi
