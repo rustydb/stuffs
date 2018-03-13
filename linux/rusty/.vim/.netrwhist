@@ -1,6 +1,0 @@
-let g:netrw_dirhistmax  =10
-let g:netrw_dirhist_cnt =4
-let g:netrw_dirhist_1='/export/data/logs/httpd/physics'
-let g:netrw_dirhist_2='/usr/local/lib/perl5/5.10.1/BSDPAN'
-let g:netrw_dirhist_3='/Users/rusty/Downloads/WANDR-BACKUP/nightly-gmap/.git'
-let g:netrw_dirhist_4='/Users/rusty/gitstuffs/feeltrip/deployment/roles/docker/tasks'
