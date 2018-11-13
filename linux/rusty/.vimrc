@@ -10,7 +10,7 @@ Plugin 'VundleVim/Vundle.vim'
 Plugin 'tpope/vim-fugitive'
 Plugin 'fholgado/minibufexpl.vim'
 Plugin 'scrooloose/nerdtree'
-Plugin 'fenetikm/falcon'
+Plugin 'Erichain/vim-monokai-pro'
 Plugin 'qpkorr/vim-bufkill'
 Plugin 'itchyny/lightline.vim'
 Plugin 'sheerun/vim-polyglot'
@@ -19,9 +19,8 @@ Plugin 'sheerun/vim-polyglot'
 call vundle#end()            " required
 filetype plugin indent on    " required
 syntax on
-set termguicolors
 set t_Co=256
-colorscheme falcon 
+colorscheme monokai_pro
 set ts=4            " Tab width
 set sw=4            " Shift width
 set softtabstop=4   " If softtabstop equals tabstop and expandtab is not set,
@@ -85,5 +84,3 @@ autocmd FileType yml setlocal ts=2 sts=2 sw=2 expandtab
 au BufRead,BufNewFile *.pde set filetype=arduino
 au BufRead,BufNewFile *.ino set filetype=arduino
 
-let g:falcon_lightline = 1
-let g:lightline={'colorscheme': 'falcon'}
