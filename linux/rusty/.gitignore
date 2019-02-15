@@ -1,15 +1,6 @@
-# Ignore all JetBrains IDE stuffs
 .idea/
-
-# Ignore VIM swap files
+*.iml
 .*.s[a-w][a-z]
-
-# OSX
 .DS_Store
-
-# Virtual envs.
 venv/
-
-# Fedmsg dirs and files.
-secrets.json
-fedmsg.d/
+secrets*
