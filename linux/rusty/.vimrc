@@ -77,8 +77,8 @@ nmap <silent> <c-h> :wincmd h<CR>
 nmap <silent> <c-l> :wincmd l<CR>
 
 " Spacing to 2 for YAML
-autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
-autocmd FileType yml setlocal ts=2 sts=2 sw=2 expandtab
+autocmd FileType yaml setlocal ts=4 sts=0 sw=2 et ai
+autocmd FileType yml setlocal ts=4 sts=0 sw=2 et ai
 
 " Arduino
 au BufRead,BufNewFile *.pde set filetype=arduino

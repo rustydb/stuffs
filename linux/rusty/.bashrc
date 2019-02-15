@@ -54,14 +54,14 @@ fi
 ########
 
 export PATH=$PATH:/usr/sbin:/sbin:
-if [[ -e "$HOME/.rbenv/bin" ]];then
+if [[ -e "$HOME/.rbenv/bin" ]]; then
     export PATH="$HOME/.rbenv/bin:$PATH"
     eval "$(rbenv init -)"
 fi
-if [[ -e "~/.passwdrc" ]];then
+if [[ -e "~/.passwdrc" ]]; then
     source ~/.passwdrc
 fi
-if [[ -d "$HOME/apps/.bin" ]];then
+if [[ -d "$HOME/apps/.bin" ]]; then
     export PATH="$HOME/apps/.bin:$PATH"
 fi
 
