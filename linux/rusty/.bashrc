@@ -86,6 +86,7 @@ alias rdesktop-tall='rdesktop -g 1000x1500 -a 16 -x b -0'
 
 # Set alias for WiFi ssh on them macbooks.
 alias sshw="ssh -b \$(ipconfig getifaddr en0)"
+alias ssh="sshpass -f ~/.spassrc ssh"
 
 # Wake Ilos!
 alias yoIlos="wakeonlan -f /rusty/.wakeonlan/ilos.mac"
@@ -166,3 +167,9 @@ if [ "$PS1" ]; then
 fi
 export PS1
 
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/rbunch/Downloads/google-cloud-sdk/path.bash.inc' ]; then . '/Users/rbunch/Downloads/google-cloud-sdk/path.bash.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/rbunch/Downloads/google-cloud-sdk/completion.bash.inc' ]; then . '/Users/rbunch/Downloads/google-cloud-sdk/completion.bash.inc'; fi
