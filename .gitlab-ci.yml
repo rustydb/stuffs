@@ -1,0 +1,15 @@
+old_lamp:
+  image: docker:latest
+  services:
+  - docker:dind
+  variables:
+    DOCKER_DRIVER: overlay
+  stage: build
+  before_script:
+  - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
+  script:
+  - docker build -f docker_images/Dockerfile --pull -t "${CI_REGISTRY_IMAGE}/clamp:$CI_COMMIT_REF_NAME" .
+  after_script:
+  - docker tag "${CI_REGISTRY_IMAGE}/clamp:$CI_COMMIT_REF_NAME" "${CI_REGISTRY_IMAGE}/clamp:latest"
+  - docker tag "${CI_REGISTRY_IMAGE}/clamp:$CI_COMMIT_REF_NAME" "${CI_REGISTRY_IMAGE}/clamp:$CI_COMMIT_REF_NAME"
+  - docker push "${CI_REGISTRY_IMAGE}/clamp"
