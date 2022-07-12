@@ -1,0 +1,10 @@
+# Outputs
+out*
+*.swp
+*.out
+
+# Jetbrains
+.idea/
+
+# System
+.DS_Store

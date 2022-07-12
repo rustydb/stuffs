@@ -1,0 +1,47 @@
+/*Oh you know, main stuffs*/
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: garmond,arial,monospace;
+}
+
+/*Div for our windows*/
+.displayWindow {
+    background-color: slateblue;
+    border: medium outset;
+    margin: 5px;
+    padding: 5px;
+    width: 95%;
+}
+
+/*Errors*/
+.error {
+    color: red;
+    font-style: italic;
+    /*width: 50%;*/
+}
+
+/*User Table*/
+table {
+    width: 60%;
+    border-spacing: 10px;
+    border-collapse: separate;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: whitesmoke;
+}
+
+td {
+    border: 1px lawngreen groove;
+    color: #00FFFF;
+    background-color: darkslategray;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+/*logout href*/
+a#logout {
+    font-size: 15pt;
+    font-weight: bold;
+}

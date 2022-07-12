@@ -1,0 +1,158 @@
+/*
+    Style Sheet for 4551 project
+    Created on 10.28.2014 by Russell Bunch
+*/
+
+html {
+    background-color: #FFF9EE;
+    font-family: 'Jura', sans-serif;
+}
+
+header {
+    text-align: left;
+}
+
+figure{
+    margin: 0 0 1.3rem 0;
+}
+
+body {
+    max-width: 720px;
+    width: 90%;
+    margin: 1em auto;
+    line-height: 1.3rem;
+    position: relative;
+    text-align: center;
+}
+
+img#quizImage {
+    height: 480px;
+    width: 100%;
+}
+
+img#endImage {
+    height: 480px;
+    width: 100%;
+}
+
+kbd {
+    -moz-background-clip:border;
+    -moz-background-inline-policy:continuous;
+    -moz-background-origin:padding;
+    background:#EEEEEE none repeat scroll 0 0;
+    border-color:#CCCCCC #AAAAAA #888888 #BBBBBB;
+    border-style:solid;
+    border-width:1px 1px 2px 2px;
+    color:#000000;
+    padding:2px 1px;
+    white-space:nowrap;
+}
+
+p#title {
+    font-size: xx-large;
+}
+
+button#kirby {
+    border: 0;
+    background: #8F7A7D;
+    border-radius: 4px;
+    width: 150px;
+    box-shadow: 0 5px 0 #66494D;
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    margin: 0;
+    outline: 0;
+    padding: 12px 20px;
+    transition: all .1s linear;
+}
+
+button#kirby:active {
+    box-shadow: 0 2px 0 #66494D;
+    transform: translateY(2px);
+}
+
+input {
+    float: left;
+}
+
+label {
+    float: left;
+}
+
+/* Blinking curser*/
+.blinkme {
+    -webkit-animation-name: blinker;
+    -webkit-animation-duration: 1s;
+    -webkit-animation-timing-function: linear;
+    -webkit-animation-iteration-count: infinite;
+
+    -moz-animation-name: blinker;
+    -moz-animation-duration: 1s;
+    -moz-animation-timing-function: linear;
+    -moz-animation-iteration-count: infinite;
+
+    animation-name: blinker;
+    animation-duration: 1s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+@-moz-keyframes blinker {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.0; }
+    100% { opacity: 1.0; }
+}
+
+@-webkit-keyframes blinker {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.0; }
+    100% { opacity: 1.0; }
+}
+
+@keyframes blinker {
+    0% { opacity: 1.0; }
+    50% { opacity: 0.0; }
+    100% { opacity: 1.0; }
+}
+
+/* Slide down quiz box */
+.slider {
+    -webkit-box-sizing:border-box;
+    -moz-box-sizing:border-box;
+    -ms-box-sizing:border-box;
+    box-sizing:content-box;
+    padding:20px;
+}
+
+.quiz {
+    overflow:hidden;
+    position:relative;
+    /* the container's height will determine the height of its slider  */
+    height:800px;
+}
+
+.slider {
+    /* complete liquid height based on the parent's height!! */
+    height:100%;
+    /* only transition on transform properties which are hardware accelerated = way better performances */
+    -webkit-transition:-webkit-transform .3s ease;
+    -moz-transition:   -moz-transform .3s ease;
+    -ms-transition:    -ms-transform .3s ease;
+    transition:        transform .3s ease;
+}
+
+.slider.opened {
+    /* completely offscreen */
+    -webkit-transform: translate(0, -100%);
+    -moz-transform: translate(0, -100%);
+    -ms-transform: translate(0, -100%);
+    transform: translate(0, -100%);
+}
+.slider.closed {
+    /* visible */
+    -webkit-transform: translate(0, 0%);
+    -moz-transform: translate(0, 0%);
+    -ms-transform: translate(0, 0%);
+    transform: translate(0, 0%);
+}

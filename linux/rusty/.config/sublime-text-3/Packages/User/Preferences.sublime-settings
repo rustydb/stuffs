@@ -1,0 +1,23 @@
+{
+	"added_words":
+	[
+		"head1",
+		"rbunch",
+		"qadexport",
+		"buildservice",
+		"ari"
+	],
+	"color_scheme": "Packages/Color Scheme - Default/Mariana.tmTheme",
+	"detect_indentation": false,
+	"font_face": "ProFont for Powerline",
+	"font_options":
+	[
+		"no_antialias",
+		"no_italic",
+		"no_bold"
+	],
+	"font_size": 12,
+	"spell_check": true,
+	"tab_size": 4,
+	"translate_tabs_to_spaces": true
+}

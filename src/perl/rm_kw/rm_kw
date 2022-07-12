@@ -1,0 +1,222 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Pod::Usage;
+use XML::Simple;
+use Data::Dumper;
+use Getopt::Long;
+use Term::ReadKey;
+use File::Basename;
+use lib 'rm_kw.libs';
+use WWW::Mechanize;
+use WWW::Bugzilla;
+
+my ($i, $j);
+my ($help, $man);
+my ($user, $pw, $line, @auth);
+my ($auth_file, $test_list, $test_dir, $compiler, $archive);
+my (@bugs, %ubugs);
+my $base_url    = 'http://bugzilla.us.cray.com/buglist.cgi?';
+my $res_url     = 'resolution=FIXED&resolution=INVALID&resolution=WONTFIX&resolution=DUPLICATE&resolution=WORKSFORME&';
+my ($url, $bug_url);
+my ($end, $success);
+my (@forms, $form);
+my ($bz, $pnt_remove);
+my $bug_id;
+
+open LOG, ">>rm_kw.bugsmodified"
+    or die "Could not open log file: $!";
+print LOG "--------TURNOVER--------\n";
+
+# Get arguments and parameters and check that arguments are actually given
+die "Invalid arguments, use -? or -help for help or -man for full documentaton.\n" if @ARGV < 1;
+
+GetOptions(
+    'u=s'       => \$auth_file,
+);
+
+# Get file and directory
+$test_list  = shift @ARGV;
+$archive    = basename(dirname($test_list));
+# Remove .ar
+$archive    = substr($archive, 0, -3);
+# Remove f90_ and remember f90 if a f90 archive
+$archive    =~ s/^(f90)_//g;
+$compiler   = $1;
+# Remove cc/CC_ and remember which version of C if a cc/CC archive
+$archive    =~ s/^(cc)_//ig;
+$compiler   = $1;
+# Check the compiler and convert to ftn if f90
+$compiler =~ s/f90/ftn/;
+print "Compiler: $compiler\nArchive: $archive\n";
+
+# Read bug numbers from test.list #TODO bugs that are commented out?
+open(SRC, "$test_list")
+    or die "Could not open test.list: $!";
+while(<SRC>) {
+    if (/(\d{6})/) {
+        push @bugs, $1;
+    }
+}
+close SRC;
+
+# Sort out duplicate bug numbers
+%ubugs = map {$_, 1} @bugs;
+undef @bugs;
+@bugs = keys %ubugs;
+
+# Build the URL
+$url .= $base_url . "bug_id=";
+$end = $#bugs;
+foreach my $bug (@bugs) {
+    if (!$end--) {
+        $bug_url .= $bug . '&';
+    } else {
+        $bug_url .= $bug .'%2C%20';
+    }
+}
+$url .= $bug_url;
+$url .= $res_url;
+$url .= 'query_format=advanced';
+
+# Print final URL to log & STDOUT
+print "\nQuery is using URL:\n\n$url\n\n";
+print LOG "\n$url\n\n";
+
+# Launches Mechanize browser, set to watch for IO failures
+my $mech = WWW::Mechanize->new( autocheck => 1 )
+    or die "Could not initiate Mechanize browser: $!";
+
+# Login, use credentials if given
+until ($success) {
+    &login($mech, $auth_file, $success);
+}
+
+# Run query
+&query($mech, $url);
+
+# DEBUG Prints current page to file
+open FILE, ">bug.xml";
+no warnings;
+print FILE $mech->content;
+use warnings;
+close FILE;
+
+# Grab XML and store locally
+print "Opening XML handle...\n";
+my $xml = new XML::Simple;
+my $ref = $xml->XMLin($mech->content,
+    ForceArray  => 1,
+    KeyAttr     => [],
+);
+print "Done.\n";
+
+# DEBUG Prints ref
+open FILE, ">perl_xml.txt";
+print FILE Dumper($ref);
+close FILE;
+
+# Look for bugs with the pe_need_test keyword, if found add comment to run it and remove they keyword
+print "Beginning to scan bugs...\n";
+print LOG "Bugs worked on:\n";
+foreach my $bug (@{$ref->{bug}}) {
+    $bug_id = $bug->{bug_id}[0];
+    print "Working on bug: $bug_id\n";
+    if ($bug->{keywords}[0] =~ /pe_need_test/) {
+        print LOG "$bug_id : Found keyword\n";
+        # We have to log in again but using the API since we aren't looking for XML anymore
+        $bz = WWW::Bugzilla->new(
+            server      => 'bugzilla.us.cray.com',
+            email       => $user,
+            password    => $pw,
+            bug_number  => $bug_id,
+        );
+        # Fetch the current keywords and strip them of pe_need_test
+        $pnt_remove = $bz->keywords;
+        $pnt_remove =~ s/pe_need_test(,*)//;
+        # Place new keyword string in
+        $bz->keywords($pnt_remove);
+        # Add a tst90 line in the comments
+        $bz->additional_comments("The pe_need_test keyword was removed, test has been added to tst90\n\n> tst90 -zx86 -p $archive -g $bug_id $compiler");
+        # Save changes
+        $bz->commit;
+
+    } else {
+        print LOG "$bug_id : No keyword found (possible already done)\n";
+    }
+}
+print "Finished scanning, record of bugs worked on is in \"rm_kw.bugsmodified\"\n";
+close LOG;
+
+sub login {
+    # Make sure auth file exists, exit if otherwise
+    $mech->get('http://bugzilla.us.cray.com/query.cgi?GoAheadAndLogIn=1');
+    @forms = $mech->forms();
+    for ($i = 0; $i <= $#forms; $i++) {
+        if ($forms[$i]->find_input('Bugzilla_login')) {
+            if ($auth_file) {
+                unless (-e $auth_file) {
+                    print "ERROR:\nSpecified credential file: $auth_file does not exist or is inaccessable.",
+                            "Perhaps permissions need to be checked?\n\n";
+                    exit(1);
+                }
+                print "Attempting to log in with given credential file...\n";
+                open FILE, $auth_file
+                    or die "Could not open $auth_file: $!";
+                while($line = <FILE>) {
+                    push @auth, $line;
+                }
+                chomp($user = $auth[0]);
+                chomp($pw   = $auth[1]);
+                close FILE;
+                $mech->form_number($i);
+                $mech->field('Bugzilla_login', $user);
+                $mech->field('Bugzilla_password', $pw);
+                $mech->submit_form();
+                if ($mech->content =~ /not valid/) {
+                    print "Login failed.\n";
+                    $auth_file = undef;
+                    return($success = 0);
+                }
+                print "Success.\n";
+                return($success = 1);
+            }
+            $mech->form_number($i);
+            print "Cray username: ";
+            chomp($user = <STDIN>);
+            $mech->field('Bugzilla_login', $user);
+            print "Cray password: ";
+            ReadMode('noecho');
+            chomp($pw = <STDIN>);
+            ReadMode('restore');
+            print "\n";
+            $mech->field('Bugzilla_password', $pw);
+            $mech->submit_form();
+            if ($mech->content =~ /not valid/) {
+                print "Login failed.\n";
+                return($success = 0);
+            }
+            return($success = 1);
+        }
+    }
+}
+
+sub query {
+    print "Running query...\n";
+    $mech->get($url);
+    @forms = $mech->forms();
+    for ($i = 0; $i < $#forms; $i++) {
+        if ($forms[$i]->find_input('#xml')) {
+            $mech->form_number($i + 1);
+            $mech->submit_form();
+        }
+    }
+    # Make sure query returned okay
+    if ($mech->content =~ /No Bugs found./ || $mech->content =~ /does not exist./) {
+        print "Query returned no results, please rerun this script with different another query.\n";
+        exit(2);
+    } else {
+        print "Done.\n";
+    }
+}

@@ -1,0 +1,75 @@
+#!/usr/bin/perl
+# Written by Russell Bunch
+
+
+use strict;
+use warnings;
+use Pod::Usage;
+use Getopt::Long;
+use Data::Dumper;
+
+my ($line_num, $num_mtches);
+my $help = 0;
+my (%strings, @keys, %values);
+my ($target, $total, $mtches);
+my $ans;
+
+# Need to provide filename and at least one search string
+die "Invalid arguments, use -? or -help for assistance.\n" if @ARGV < 1;
+
+GetOptions(
+    'help|?'    => \$help,
+);
+pod2usage(1) if $help;
+
+# Open file
+open FILE, shift @ARGV
+    or die "File could not be opened: $!";
+foreach my $arg (@ARGV) {
+    $strings{$arg} = 0;
+}
+
+# Get keys and read the file, checking the keys against each line
+@keys       = keys %strings;
+while(<FILE>) {
+    foreach my $s (@keys) {
+        $strings{$s}++ if /$s/;
+    }
+}
+#print Dumper(%strings);
+# Get values and check if 0 exists, they should all have a value.
+#%values     = map {$_ => 1} (values %strings);
+while(my ($k, $v) = each(%strings)) {
+    if ($v == 0) {
+        print "$k was not found.\n"; #Continue to check the others? [Y/n]: ";
+        #chomp($ans = <STDIN>);
+        #if ($ans =~ /n/i) {
+            print "Failed\n";
+            exit(1);
+        #}
+    }
+}
+print "Passed\n";
+exit(0);
+
+##### Documentation ######
+
+=head1 NAME
+
+    Test Parser - String Finder
+
+=head1 SYNOPSIS
+
+    Purpose: Finds strings in test files, simple grep
+
+    Use: ./str_parser [file name] [keyword {more space delimited keywords}]
+
+=over 8
+
+=item B<-?, -help>
+
+=head1 AUTHOR
+
+    Written by Russell D. Bunch (rusty)
+
+=cut

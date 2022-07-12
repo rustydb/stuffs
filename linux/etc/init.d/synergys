@@ -1,0 +1,38 @@
+#!/bin/sh
+
+# By Russell Bunch
+# Starts synergys with /etc/synergy.conf
+
+# Check for binary
+syn=/usr/bin/synergys
+test -x $syn || { echo "$syn not installed";
+    if [ "$1" = "stop" ]; then exit 0;
+    else exit 5; fi; }
+
+# Check for existence of config
+sync=/etc/synergys.conf
+test -r $sync || { echo "$sync does not exist";
+    if [ "$1" = "stop" ]; then exit 0;
+    else exit 6; fi; }
+
+case "$1" in
+    start)
+        echo -n "Starting synergys\n"
+        /usr/bin/synergys --config $sync
+        ;;
+    stop)
+        echo -n "Shutting down synergys\n"
+        /usr/bin/killall -s 2 synergys
+        exit 0
+        ;;
+    restart)
+        echo -n "Restarting synergys"
+        $0 stop
+        $0 start
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+        ;;
+esac
+

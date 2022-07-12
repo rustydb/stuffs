@@ -1,0 +1,1 @@
+/rusty/gitstuffs/4707-repo/lab4/installation/bin/postgres "-D" "../data"

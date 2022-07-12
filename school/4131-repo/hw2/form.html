@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+    <head lang="en">
+        <meta charset="UTF-8">
+        <link rel = "stylesheet" type = "text/css"
+        href = "style.css">
+        <title>Calendar Input</title>
+    </head>
+    <body>
+        <h1 class = "title"><strong>Calendar Input</strong></h1>
+        <!--Nav Bar-->
+        <nav>
+        <a href="bunc0035_calendar.html">Calendar</a>
+        <a href="form.html">Input</a>
+        </nav>
+        <!--Form-->
+        <form class = "calin" method = "post" action = "bunc0035_calendar.html" >
+            <div><label>Event Name:</label>
+                <input name="eventName" type="text"
+                maxlength="64">
+                <br>
+                <label>Event Day:</label>
+                <select>
+                    <option value = "Monday">Monday</option>
+                    <option value = "Tuesday">Tuesday</option>
+                    <option value = "Wednesday">Wednesday</option>
+                    <option value = "Thursday">Thursday</option>
+                    <option value = "Friday">Friday</option>
+                    <option value = "Saturday">Saturday</option>
+                    <option value = "Sunday">Sunday</option>
+                </select>
+                <br>
+                <label>Start Time:</label>
+                <input name="startTime" type="time"/>
+                <br>
+                <label>End Time:</label>
+                <input name="endTime" type="time"/>
+                <br>
+                <label>Location:</label>
+                <input name="loc" type="text"/>
+            </div>
+            <br>
+            <div class = "buttons">
+                <input type="submit" value="Submit">
+                <input type="reset" value="Clear">
+            </div>
+        </form>
+    </body>
+</html>

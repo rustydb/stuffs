@@ -1,0 +1,17 @@
+/home/users/rbunch/.perl/bin/pod2man
+/home/users/rbunch/.perl/bin/pod2text
+/home/users/rbunch/.perl/lib/perl5/Pod/Man.pm
+/home/users/rbunch/.perl/lib/perl5/Pod/ParseLink.pm
+/home/users/rbunch/.perl/lib/perl5/Pod/Text.pm
+/home/users/rbunch/.perl/lib/perl5/Pod/Text/Color.pm
+/home/users/rbunch/.perl/lib/perl5/Pod/Text/Overstrike.pm
+/home/users/rbunch/.perl/lib/perl5/Pod/Text/Termcap.pm
+/home/users/rbunch/.perl/man/man1/perlpodstyle.1
+/home/users/rbunch/.perl/man/man1/pod2man.1
+/home/users/rbunch/.perl/man/man1/pod2text.1
+/home/users/rbunch/.perl/man/man3/Pod::Man.3pm
+/home/users/rbunch/.perl/man/man3/Pod::ParseLink.3pm
+/home/users/rbunch/.perl/man/man3/Pod::Text.3pm
+/home/users/rbunch/.perl/man/man3/Pod::Text::Color.3pm
+/home/users/rbunch/.perl/man/man3/Pod::Text::Overstrike.3pm
+/home/users/rbunch/.perl/man/man3/Pod::Text::Termcap.3pm
