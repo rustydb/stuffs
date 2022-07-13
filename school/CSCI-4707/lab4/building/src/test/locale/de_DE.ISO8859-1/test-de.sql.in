@@ -1,0 +1,22 @@
+COPY wordlist FROM stdin WITH DELIMITER '|';
+AAA           |���
+AAAAa         |�����
+BBBB          |BBBB
+ooooooo       |oooooooo
+uuuu          |����
+UUUUU         |�����
+CCC           |CCCC
+aaaaaa        |����
+������        |�������
+aaaaaaa       |aaaaaa
+bbbbbb        |bbbbb
+UU            |UU
+oooooo        |������
+ddddd         |ddddd
+OOOOO         |�����
+OOOOOOO       |OOOOOOO
+BBBBBB        |BBBBBBB
+SSSSSSSS      |SSSSSSSS
+ssssss        |ssssss
+\.
+SELECT * FROM wordlist ORDER BY name_de;

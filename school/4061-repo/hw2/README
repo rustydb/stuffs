@@ -1,9 +1,0 @@
-Names: Gavin Prentice (prent024) and Russell Bunch (bunc0035)
-
-Our programs works as follows:
-
-Given a directory to start in, and a search string, we start by opening the given directory. Examining the contents one at a time, checking if the object we are looking at is a directory, in addtion to this we ignore the . and .. directories. If the object being exaimned is a file, we pass the concatenated directory path and file name to our execute() function. Otherwise we recurse, making the subdirectory the original in the recursive call. For each file and directory examined at this stage, it is recorded in "log.txt."
-
-Moving on, execute() is where most of the work is done. Execute() opens a pipe and forks the process. The parent opens the file that execute() was given, reads in a pre-determined amount of bytes. It writes the bytes previously read into the write end of the pipe, sending it to the child. The child receives this and passes it to grep. Grep examines the bytes given, searching for lines that contain the search string. If found, it outputs this into "out.txt." The parent then waits for the child to die, and once it does, closes the file that was being read and exits.
-
-More specific detail can be found in the comments in getstring.c with regards to what ends of the pipe are being open, and other technical information.

@@ -9,16 +9,17 @@ Various things I've drafted up for other various things, peruse to your hearts c
 │   └── centos:7-lamp   # A CentOS 7 LAMP Image
 ├── html
 │   ├── 4lambda         # Website stuff
+│   │   └── 4551        # Writing-4551 Modern Technology
 ├── linux
 │   ├── etc             # /etc files
 │   ├── rusty           # /rusty config files
 │   ├── usr             # /usr files
 │   └── var             # /var files
 ├── school
-│   ├── 4061-repo       # Operating Systems
-│   ├── 4131-repo       # Web Applications
-│   ├── 4211-repo       # Networking
-│   └── 4707-repo       # Databases
+│   ├── CSCI-4061       # Operating Systems
+│   ├── CSCI-4131       # Web Applications
+│   ├── CSCI-4211       # Networking
+│   └── CSCI-4707       # Databases
 ├── src
 │   ├── c               # C\C++ & OpenACC
 │   ├── f90             # Fortran90
@@ -27,6 +28,3 @@ Various things I've drafted up for other various things, peruse to your hearts c
 │   └── ruby            # Ruby
 └── widgets             # Übersicht Configurations
 ```
-<p align="center">
-    <img src="http://i.imgur.com/GvVk095.gif" alt="banana dolphin")
-</p>

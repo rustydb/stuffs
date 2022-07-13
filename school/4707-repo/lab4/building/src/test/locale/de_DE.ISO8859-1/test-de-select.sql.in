@@ -1,1 +1,0 @@
-SELECT * FROM wordlist WHERE name_de ~* '^�.*' ORDER BY name_de;

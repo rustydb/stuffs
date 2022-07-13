@@ -1,0 +1,23 @@
+IDEAS FOR IMPLEMENTING A "DEBUG FLAG"
+
+Option 1a:
+    Use the method referenced in the forums by manually adding
+"#define FIFO_FLAG false" in buf_internals.h to run the clock-work algorithm
+by default. When we wish to switch this to FIFO, just switch the false to true
+
+Option 1b:
+    Use the method referenced in the forums explained by 1a, except write a
+script (maybe in the Makefile, or a separate file the Makefile would reference)
+that would overwrite the current buf_internals.h with the appropriate value
+for FIFO_FLAG depending on which test we are running.
+
+Option 2:
+    Edit the flags to add in a --fifo option when running psql. Basic idea of 
+how I would do this is listed below.
+    In /src/backend/postmaster/postmaster.c -
+413-455: Add a bool for FIFO in the BackendParameters object
+548-722: Add a case + logic for our determined FIFO flag
+(should probably check the /tcop/postgres.c file named in the comments [545])
+    Continue to follow down postmaster.c and see where BackendParameters goes.
+I would think that each child state inherits the variables set in this section
+so it should be relatively easy to have an if check in freelist.c.

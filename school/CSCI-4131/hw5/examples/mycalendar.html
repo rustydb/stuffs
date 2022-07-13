@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Daily Calendar</title>
+    <link rel="stylesheet" type="text/css" href="../style.css">
+    <!-- load maps API -->
+    <script type="text/javascript"
+            src = "https://maps.googleapis.com/maps/api/js?libraries=places&amp;&amp;key=AIzaSyAjqrxrYGYmFZ0NjcLGpaS5yc_6ujcmuZM">
+    </script>
+    <script type="text/javascript">
+
+      function elem(el) {
+        return document.getElementById(el);
+      }
+
+      var mapOptions =
+      {
+        center: new google.maps.LatLng(44.974, -93.234),
+        zoom: 17
+      };
+
+      var map = null;
+      var service = null;
+      function init() {
+        map = new google.maps.Map(document.getElementById('map-canvas'),
+          mapOptions);
+        service = new google.maps.places.PlacesService(map);
+
+        var locations = document.getElementsByClassName('loc'); // get locations on the calendar
+        for(var i = 0; i < locations.length; i++) {
+          mark(locations[i].innerHTML); //puts locations on calendar on map
+        }
+      } // end init
+	  
+	  // call init when window onload event is issued
+      google.maps.event.addDomListener(window, 'load', init);
+
+	  // called by form when submitted with a null request, also called by init 
+	  // for each location in the calendar
+      function mark(req) {
+        if(req.length == 0) {
+          req = elem("location_box").value;
+        }
+        if(req.length > 0) {
+          var request = {
+            location: mapOptions.center,
+            radius: '500',
+            query: req, // text associated with calendar item
+          };
+		  // request helps text search narrow the locations associated with
+		  // the location stored in req
+          service.textSearch(request, getCallback(req)); 		  
+          elem("location_box").value = '';
+        }
+
+        /* don't submit form */
+        return false;
+      }
+
+	  //called by the callback function below. 
+      function createMarker(place, txt) {
+        var marker = new google.maps.Marker({
+          map: map,
+          position: place.geometry.location, //attribute found by the service
+          title: place.name //same
+        });
+
+        var infowindow = new google.maps.InfoWindow({
+            content: txt
+        });
+
+		// add a listener to the marker that displays the text onclick
+        google.maps.event.addListener(marker, 'click', function() {
+          infowindow.open(map,marker); 
+        });
+      }  // end createMarker
+
+	  // takes text of location we are looking for req, the callback function
+	  // is called by the service with an array of results and a status
+      function getCallback(txt) { // Note the 
+        function callback(results, status) {
+		  // if the service found information related to the text, it 
+		  // returns ol
+          if(status == google.maps.places.PlacesServiceStatus.OK) {
+            /* just take top result */
+            var place = results[0];
+            createMarker(results[0], txt); // and we hang a marker on the location
+			                               // that displays the text
+          }
+        }
+        return callback;  // return the callback routine, which is then passed as
+      }                   // the second parameter to the service.textSearch call above
+                          // with the parameters request, and callback(results, status)
+						  // the textsearch calls the routine callback with a results
+						  // array and the status of its search for locations that match
+						  // the text stored in req
+    </script>
+  </head>
+  <body>
+  <h1>My Calendar</h1>
+  <nav id="navmenu">
+    <ul>
+    <li><a href="calendar.html">Calendar</a></li>
+    <li><a href="input.html">Input</a></li>
+    </ul>
+  </nav>
+  <div id="calendar">
+    <table>
+      <tr>
+        <td>Mon</td>
+        <td>
+          <p><i>1:00pm-2:00pm</i><p>
+          Meeting - <span class="loc">Walter</span>
+        </td>
+        <td>
+          <p><i>4:00pm-5:00pm</i></p>
+          Bowling - <a href="http://sua.umn.edu/game-rooms/"><span class="loc">Coffman</span></a>
+        </td>
+      </tr>
+
+      <tr>
+        <td>Thu</td>
+        <td>
+          <p><i>4:15pm-5:15pm</i></p>
+          CSCI 4131 - <span class="loc">Tate Lab</span>
+        </td>
+        <td>
+          <p><i>5:15pm-6:15pm</i></p>
+          Office Hours <span class="loc">Keller Hall</span>
+        </td>
+      </tr>
+
+      <tr>
+        <td>Fri</td>
+        <td>
+          <p><i>10:00pm-10:30pm</i></p>
+          Office Hours - <span class="loc">Keller Hall</span>
+        </td>
+        <td>
+          <p><i>10:30pm-11:00pm</i></p>
+          Office Hours - <span class="loc">Keller Hall</span>
+        </td>
+        <td>
+          <p><i>1:30pm-3:30pm</i></p>
+          Group Meeting <span class="loc">Walter</span>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <form id="loc_form" onSubmit="event.preventDefault(); return mark('')">
+    <input type="text" id="location_box">
+    <button id="load_marks" onclick=mark()>Search</button>
+  </form>
+  <div id="map-canvas"></div>
+  <i>This page has been tested in Firefox.</i>
+  </body>
+</html>

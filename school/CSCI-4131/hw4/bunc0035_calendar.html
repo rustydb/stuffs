@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset = "utf-8">
+        <link rel = "stylesheet" type = "text/css"
+        href = "style.css">
+        <title>Russell's Page</title>
+        <style>
+            table, th, td
+            {
+                border: 1px solid black;
+            }
+        </style>
+        <script type="text/javascript"
+                src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCn0rSmQ6etYZx_amGyeiSEYi1zzo4DTMU&amp;libraries=places">
+        </script>
+        <script type="text/javascript" src="ggl_maps.js"></script>
+    </head>
+    <body>
+        <h1 class = "title">Russell's Calendar</h1>
+        <!--Nav Bar-->
+        <div><nav>
+        <a href="bunc0035_calendar.html">Calendar</a>
+        <a>Input</a>
+        </nav></div>
+        <!--Calendar-->
+        <table class = "cal">
+            <caption style="color: black"><strong>
+                    September Week: 3
+            </strong></caption>
+            <tr>
+                <th>Day</th>
+                <th>Appt. 1</th>
+                <th>Appt. 2</th>
+                <th>Appt. 3</th>
+            </tr>
+            <tr>
+                <th><span>Monday</span></th>
+                <td>
+                    <span class = "time">0900 - 1415</span><br>
+                    Work : Physics<br>
+                    <a class = "location">Tate Lab</a>
+                </td>
+                <td>
+                    <span class = "time">1530 - 1800</span><br>
+                    German Comp.<br>
+                    <a class = "location">Folwell Hall</a>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <th><span>Tuesday</span></th>
+                <td>
+                    <span class = "time">0845 - 1200</span><br>
+                    CSCI 4707<br>
+                    <a class = "location">Lind Hall</a>
+                </td>
+                <td>
+                    <span class = "time">1300 - 1330</span><br>
+                    Meeting with Gina<br>
+                    <a class = "location">Jackson Hall</a>
+                </td>
+                <td>
+                    <span class = "time">1400 - 1600</span><br>
+                    Google things:
+                    <a href = "http://www.google.com">Google
+                    </a><br>
+                    <a class = "location">1725 University Ave SE</a>
+                </td>
+            </tr>
+            <tr>
+                <th><span>Wednesday</span></th>
+                <td>
+                    <span class = "time">0900 - 1415</span><br>
+                    Work : Physics<br>
+                    <a class = "location">Amundson Hall</a>
+                </td>
+                <td>
+                    <span class = "time">1530 - 1800</span><br>
+                    German Comp.<br>
+                    <a class = "location">Ford Hall</a>
+                </td>
+                <td>
+                    Note: Remember that you need to get milk
+                </td>
+            </tr>
+            <tr>
+                <th><span>Thursday</span></th>
+                <td>
+                    <span class = "time">1200 - 1400</span><br>
+                    Lunch - Mom<br>
+                    <a class = "location">1325 4th St SE</a>
+                </td>
+                <td>
+                    <span class = "time">1800 - 2055</span><br>
+                    Algorithms and Scheme: Modern Days Look at Python<br>
+                    <a class = "location">Kenneth H. Keller Hall</a>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <th><span>Friday</span></th>
+                <td>
+                    <span class = "time">0700 - 1600</span><br>
+                    Meeting<br>
+                    <a class = "location">Koltoff Hall</a>
+                </td>
+                <td>
+                    <span class = "time">1600 - 1700</span><br>
+                    Go to CVS<br>
+                    <a class = "location">Smith Hall</a>
+                </td>
+                <td>
+                    <span class = "time">1800 - 0200</span><br>
+                    Beer Festival<br>
+                    <a class = "location">100 Church St SE, Minneapolis, MN 55455</a>
+                </td>
+            </tr>
+            <tr>
+                <th><span>Saturday</span></th>
+                <td>
+                    <span class = "time">1200 - 1330</span><br>
+                    Setup Conference Call<br>
+                    <a class = "location">2218 University Ave SE</a>
+                </td>
+                <td>
+                    <span class = "time">1600 - 1800</span><br>
+                    Mow lawn<br>
+                    <a class = "location">1711 University Ave SE Minneapolis MN 55414</a>
+                </td>
+                <td>
+                </td>
+            </tr>
+            <tr>
+                <th><span>Sunday</span></th>
+                <td>
+                    <span class = "time">0800 - 1200</span><br>
+                    Farmers Market<br>
+                    <a class = "location">257 19th Ave S, Minneapolis, MN 55455</a>
+                </td>
+                <td>
+                </td>
+                <td>
+                </td>
+            </tr>
+        </table>
+        <!--Google Maps Stuff-->
+        <form id = "ggl_maps_frm" onsubmit="return killForm()">
+            <input id="searchfield" type="text" name="place" value=""/>
+            <button onclick="searchAndAdd()">Search</button>
+        </form>
+        <div id = "ggl_maps"></div>
+        <!--Gif and Footer-->
+        <div class = "disclaimer">
+            <img src="banana_dolphin.gif" alt="Banana Dolphin"/> <br>
+            <span> --Tested in Firefox and Chrome-- </span> <br>
+        </div>
+    </body>
+</html>

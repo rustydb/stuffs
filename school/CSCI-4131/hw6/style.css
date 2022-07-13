@@ -1,0 +1,146 @@
+/* Title */
+.title {
+    text-align:  center;
+    font-weight: bold;
+}
+
+html, body
+{
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+
+/* Nav bar */
+nav {
+    border: 5px solid gainsboro;
+    list-style:  none;
+    margin:  0;
+    padding:  0;
+    text-align: center;
+    background-color: gainsboro;
+}
+
+nav a {
+    display: inline;
+    padding-left: 50px;
+    padding-right: 50px;
+}
+
+/* Calendar */
+#cal {
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+    color: cyan;
+    /*border-collapse: collapse;*/
+}
+
+table {
+    border-spacing: 10px;
+    border-collapse: separate;
+    display: inline-block;
+}
+
+td {
+    border: 1px lawngreen groove;
+    color: #00FFFF;
+    background-color: darkslategray;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+span#cal {
+    color: yellow;
+}
+
+#cal caption{
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+.cal td {
+}
+
+.cal tr:nth-child(odd) {
+    background-color: dimgrey;
+}
+
+.cal tr:nth-child(even) {
+    background-color: gray;
+}
+
+/* Time styling */
+span.time {
+    font-style: italic;
+    color: #fc71ff;
+    font-weight: bold;
+}
+
+/* Form */
+form.calin {
+    width: 600px;
+    height: 400px;
+    margin: 0 auto;
+    padding: 10px;
+}
+
+.calin label {
+    display: inline-block;
+    width: 120px;
+    text-align: right;
+}
+
+.calin input {
+    /*margin-left: 10px;*/
+    /*display: right;*/
+    /*width: 100px;*/
+    /*width: 50%;*/
+    display: inline-block;
+}
+
+div.buttons {
+    margin: 0 auto;
+    width: 300px;
+}
+
+/* Disclaimer */
+.disclaimer {
+    width: 900px;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    font-weight: bold;
+}
+
+/* Maps */
+
+#ggl_maps_frm {
+    width: 350px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 25px;
+    text-align: center;
+}
+
+html #ggl_maps {
+    height: 600px;
+    width: 750px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Error */
+.error {
+    color: #FF0000;
+}
+
+#emptycal {
+    width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}

@@ -1,0 +1,16 @@
+4707 Fall 2014 Lab 3
+
+Russell Bunch & Gavin Prentice
+bunc0035 & prent024
+
+Files Edited:
+    src/backend/storage/buffer/freelist.c
+    src/backend/storage/buffer/buf_init.c
+    src/backend/storage/buffer/bufmgr.c
+    src/include/storage/buf_internals.h
+
+Modification Synapsis:
+   We added an attribute to the buffer class that recorded the time the buffer was created.
+   When we find an unpinned buffer to free for BufferAlloc(), we check if that's the oldest buffer
+   in our ring. If it is, we return that buffer. This establishes a FIFO algorithm, where the first in
+   will indeed by the first out since it is done chronologically.

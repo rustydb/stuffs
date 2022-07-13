@@ -1,1 +1,0 @@
-/rusty/PostgreSQL/installation/bin/postgres "-D" "installation/data"

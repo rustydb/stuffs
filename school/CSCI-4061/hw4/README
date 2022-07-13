@@ -1,0 +1,20 @@
+/* CSci4061 S2013 PA4
+section: 4
+section: one digit number
+date: 04/11/14
+name: Russell Bunch, Gavin Prentice (for partner)
+id: 4352554, 4336808 * Extra credit:
+not implemented */
+
+Our programs works as follows:
+
+We start by reading everything from the given clients.txt into a shared queue.
+Each line is in its own node in the queue. We start our threads, defaulting to 5
+if none are specified, and each thread runs threader. Threader establishes a mutex
+lock. Thus allowing it to deque, decrypt, and write to the shared log file without
+issue. In addition (but not needed by the mutex_lock), it writes the client.out files.
+
+Important:
+When retrieve.out is ran, it will change into the directory of argv[1] (clients.txt).
+
+Check comments for specific details.
