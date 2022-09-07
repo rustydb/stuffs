@@ -7,13 +7,15 @@ call vundle#begin()
 
 " let Vundle manage Vundle, required
 Plugin 'VundleVim/Vundle.vim'
-Plugin 'tpope/vim-fugitive'
-Plugin 'fholgado/minibufexpl.vim'
-Plugin 'scrooloose/nerdtree'
 Plugin 'Erichain/vim-monokai-pro'
-Plugin 'qpkorr/vim-bufkill'
+Plugin 'fholgado/minibufexpl.vim'
 Plugin 'itchyny/lightline.vim'
+Plugin 'itspriddle/vim-shellcheck'
+Plugin 'pylint.vim'
+Plugin 'qpkorr/vim-bufkill'
+Plugin 'scrooloose/nerdtree'
 Plugin 'sheerun/vim-polyglot'
+Plugin 'tpope/vim-fugitive'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -28,7 +30,7 @@ set softtabstop=4   " If softtabstop equals tabstop and expandtab is not set,
                     " always use the appropriate number of spaces.
 set smarttab        " Tab inserted when indenting and/or correct alignment spaces
 set expandtab       " Use spaces when tab key is pressed
-set textwidth=79    " Use 79 text width.
+set textwidth=0     " No text width.
 set fileformat=unix
 set autoindent
 set cindent
