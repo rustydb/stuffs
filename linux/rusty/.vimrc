@@ -49,6 +49,7 @@ autocmd ColorScheme * highlight ExtraWhitespace ctermbg=red guibg=red
 
 " make search not suck "
 set incsearch ignorecase smartcase hlsearch
+hi IncSearch cterm=NONE ctermfg=yellow ctermbg=darkblue
 
 " statusline from vim cheat sheet for programmer "
 set nocompatible ruler laststatus=2 showcmd showmode number
