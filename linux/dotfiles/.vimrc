@@ -6,8 +6,9 @@ set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 
 " let Vundle manage Vundle, required
-Plugin 'VundleVim/Vundle.vim'
 Plugin 'Erichain/vim-monokai-pro'
+Plugin 'VundleVim/Vundle.vim'
+Plugin 'editorconfig/editorconfig-vim'
 Plugin 'fholgado/minibufexpl.vim'
 Plugin 'itchyny/lightline.vim'
 Plugin 'itspriddle/vim-shellcheck'
@@ -52,7 +53,7 @@ set incsearch ignorecase smartcase hlsearch
 hi IncSearch cterm=NONE ctermfg=yellow ctermbg=darkblue
 
 " statusline from vim cheat sheet for programmer "
-set nocompatible ruler laststatus=2 showcmd showmode number
+set nocompatible ruler laststatus=2 showcmd showmode number modeline
 
 let fortran_free_source=1
 let fortran_have_tabs=1

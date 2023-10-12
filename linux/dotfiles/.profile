@@ -33,3 +33,4 @@ if [[ -e "$HOME/.pyenv/shims" ]]; then
     eval "$(pyenv init -)"
 fi
 export PATH="/usr/local/sbin:$PATH"
+export PATH="/usr/local/opt/cython/bin:$PATH"

@@ -46,6 +46,9 @@ elif [[ "$KERNEL" == 'FreeBSD' ]] ; then
 elif [[ "$KERNEL" == 'OpenBSD' ]] ; then
     PLATFORM='openbsd'
 elif [[ "$KERNEL" == 'Darwin' ]] ; then
+    if [ "$(uname -m)" = 'arm64' ]; then
+        export PATH="/opt/homebrew/bin:$PATH"
+    fi
     PLATFORM='freebsd' # Treat it the same way
 fi
 
@@ -53,7 +56,7 @@ fi
 # Path #
 ########
 
-export PATH=$PATH:/usr/sbin:/sbin:
+export PATH="$PATH:/usr/sbin:/sbin:"
 if [[ -e "$HOME/.rbenv/bin" ]]; then
     export PATH="$HOME/.rbenv/bin:$PATH"
     eval "$(rbenv init -)"
@@ -86,7 +89,6 @@ alias rdesktop-tall='rdesktop -g 1000x1500 -a 16 -x b -0'
 
 # Set alias for WiFi ssh on them macbooks.
 alias sshw="ssh -b \$(ipconfig getifaddr en0)"
-alias ssh="sshpass -f ~/.spassrc ssh"
 
 # Wake Ilos!
 alias yoIlos="wakeonlan -f /rusty/.wakeonlan/ilos.mac"
@@ -167,9 +169,24 @@ if [ "$PS1" ]; then
 fi
 export PS1
 
-
 # The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/rbunch/Downloads/google-cloud-sdk/path.bash.inc' ]; then . '/Users/rbunch/Downloads/google-cloud-sdk/path.bash.inc'; fi
+if [ -f '/Users/rusty/google-cloud-sdk/path.bash.inc' ]; then . '/Users/rusty/google-cloud-sdk/path.bash.inc'; fi
 
 # The next line enables shell command completion for gcloud.
-if [ -f '/Users/rbunch/Downloads/google-cloud-sdk/completion.bash.inc' ]; then . '/Users/rbunch/Downloads/google-cloud-sdk/completion.bash.inc'; fi
+if [ -f '/Users/rusty/google-cloud-sdk/completion.bash.inc' ]; then . '/Users/rusty/google-cloud-sdk/completion.bash.inc'; fi
+
+# Git bash comp.
+if [ -f '/usr/local/git/contrib/completion/git-completion.bash' ]; then . '/usr/local/git/contrib/completion/git-completion.bash'; fi
+eval "$(rbenv init - bash)"
+export GOENV_ROOT="$HOME/.goenv"
+export PATH="$GOENV_ROOT/bin:$PATH"
+eval "$(goenv init -)"
+export PATH="$PATH:$GOPATH/bin"
+export PATH="$GOROOT/bin:$PATH"
+export GROOVY_HOME=/usr/local/opt/groovy/libexec
+alias v='stoken tokencode'
+PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+
+
+export HELM_EXPERIMENTAL_OCI=1
+source <(kubectl completion bash)
