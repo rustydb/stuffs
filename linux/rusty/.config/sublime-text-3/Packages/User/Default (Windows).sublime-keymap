@@ -1,6 +1,0 @@
-[
-    { "keys": ["ctrl+shift+z"], "command": "redo_or_repeat" },
-    { "keys": ["ctrl+y"], "command": "run_macro_file", "args": {"file": "res://Packages/Default/Delete Line.sublime-macro"} },
-    { "keys": ["alt+shift+up"], "command": "swap_line_up" },
-    { "keys": ["alt+shift+down"], "command": "swap_line_down" },
-]
