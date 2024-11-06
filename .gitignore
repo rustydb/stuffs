@@ -1,10 +1,15 @@
-# Outputs
-out*
-*.swp
-*.out
-
-# Jetbrains
+# IntelliJ IDE files
 .idea/
+*.iml
 
-# System
+# *env local version files
+.*-version
+
+# Swap
+.*.s[a-w][a-z]
+
+# Finder (macOS)
 .DS_Store
+
+# Typical virtual environment name.
+venv/
