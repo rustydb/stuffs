@@ -15,41 +15,41 @@
 ################
 
 # Windows setup for cygwin to honor line endings and such.
-if [[ "$TERM" == 'cygwin' ]]; then
-    export SHELLOPTS
-    set -o igncr
+if [[ $TERM == 'cygwin' ]]; then
+  export SHELLOPTS
+  set -o igncr
 fi
 
 # If not running interactively then don't do anything else but pathzz.
 [[ $- == *i* ]] || return
 
 # Enable Bash Completion if script is present.
-if [[ -e /etc/bash_completion ]];then
-    . /etc/bash_completion
+if [[ -e /etc/bash_completion ]]; then
+  . /etc/bash_completion
 fi
-if [[ -e /usr/local/bin/brew ]];then
-    BREW_PREFIX="$(brew --prefix)"
+if [[ -e /usr/local/bin/brew ]]; then
+  BREW_PREFIX="$(brew --prefix)"
 fi
-if [[ -f "$BREW_PREFIX/etc/bash_completion" ]];then
-    . "$BREW_PREFIX/etc/bash_completion"
+if [[ -f "$BREW_PREFIX/etc/bash_completion" ]]; then
+  . "$BREW_PREFIX/etc/bash_completion"
 fi
-if [[ -e "$HOME/.local/git-completion.bash" ]];then
-    . "$HOME/.local/git-completion.bash"
+if [[ -e "$HOME/.local/git-completion.bash" ]]; then
+  . "$HOME/.local/git-completion.bash"
 fi
 
 # Checks to see if on FreeBSD or linux
 KERNEL=$(uname)
-if [[ "$KERNEL" == 'Linux' ]] || [[ "$KERNEL" == *"NT"* ]] ; then
-    PLATFORM='linux'
-elif [[ "$KERNEL" == 'FreeBSD' ]] ; then
-    PLATFORM='freebsd'
-elif [[ "$KERNEL" == 'OpenBSD' ]] ; then
-    PLATFORM='openbsd'
-elif [[ "$KERNEL" == 'Darwin' ]] ; then
-    if [ "$(uname -m)" = 'arm64' ]; then
-        export PATH="/opt/homebrew/bin:$PATH"
-    fi
-    PLATFORM='freebsd' # Treat it the same way
+if [[ $KERNEL == 'Linux' ]] || [[ $KERNEL == *"NT"* ]]; then
+  PLATFORM='linux'
+elif [[ $KERNEL == 'FreeBSD' ]]; then
+  PLATFORM='freebsd'
+elif [[ $KERNEL == 'OpenBSD' ]]; then
+  PLATFORM='openbsd'
+elif [[ $KERNEL == 'Darwin' ]]; then
+  if [ "$(uname -m)" = 'arm64' ]; then
+    export PATH="/opt/homebrew/bin:$PATH"
+  fi
+  PLATFORM='freebsd' # Treat it the same way
 fi
 
 ########
@@ -58,14 +58,14 @@ fi
 
 export PATH="$PATH:/usr/sbin:/sbin:"
 if [[ -e "$HOME/.rbenv/bin" ]]; then
-    export PATH="$HOME/.rbenv/bin:$PATH"
-    eval "$(rbenv init -)"
+  export PATH="$HOME/.rbenv/bin:$PATH"
+  eval "$(rbenv init -)"
 fi
 if [[ -e "~/.passwdrc" ]]; then
-    source ~/.passwdrc
+  source ~/.passwdrc
 fi
 if [[ -d "$HOME/apps/.bin" ]]; then
-    export PATH="$HOME/apps/.bin:$PATH"
+  export PATH="$HOME/apps/.bin:$PATH"
 fi
 
 ###########
@@ -94,14 +94,14 @@ alias sshw="ssh -b \$(ipconfig getifaddr en0)"
 alias yoIlos="wakeonlan -f /rusty/.wakeonlan/ilos.mac"
 
 # Fix ls.
-if [[ $PLATFORM == 'linux' ]] ; then
-    alias ll='ls -l --color=auto'
-    alias ls='ls --color=auto'
+if [[ $PLATFORM == 'linux' ]]; then
+  alias ll='ls -l --color=auto'
+  alias ls='ls --color=auto'
 elif [[ $PLATFORM == 'freebsd' ]]; then
-    alias ll='ls -G -l'
-    alias ls='ls -G'
+  alias ll='ls -G -l'
+  alias ls='ls -G'
 elif [[ $PLATFORM == 'openbsd' ]]; then
-    alias ll='ls -l'
+  alias ll='ls -l'
 fi
 
 #############
@@ -111,21 +111,21 @@ fi
 # Function for displaying git branch in PS1
 function parse_git_branch {
   if [ ! -d . ]; then
-    return '';
+    return ''
   fi
-            # We pass in the magic token bash makes from \[ and \] (^A and ^B probably)
-            # so we can use them in our echo statement.
-            RED="$1\e[0;31m$2"
-         YELLOW="$1\e[33m$2"
-          GREEN="$1\e[32m$2"
-           BLUE="$1\e[34m$2"
-      LIGHT_RED="$1\e[31m$2"
-           CYAN="$1\e[36m$2"
-     LIGHT_CYAN="$1\e[1;36m$2"
-    LIGHT_GREEN="$1\e[1;32m$2"
-          WHITE="$1\e[1;37m$2"
-     LIGHT_GRAY="$1\e[0;37m$2"
-     COLOR_NONE="$1\e[0m$2"
+  # We pass in the magic token bash makes from \[ and \] (^A and ^B probably)
+  # so we can use them in our echo statement.
+  RED="$1\e[0;31m$2"
+  YELLOW="$1\e[33m$2"
+  GREEN="$1\e[32m$2"
+  BLUE="$1\e[34m$2"
+  LIGHT_RED="$1\e[31m$2"
+  CYAN="$1\e[36m$2"
+  LIGHT_CYAN="$1\e[1;36m$2"
+  LIGHT_GREEN="$1\e[1;32m$2"
+  WHITE="$1\e[1;37m$2"
+  LIGHT_GRAY="$1\e[0;37m$2"
+  COLOR_NONE="$1\e[0m$2"
 
   if git rev-parse --git-dir &> /dev/null; then
     branch=$(git branch | grep '*' | sed 's/\* //')
@@ -135,37 +135,37 @@ function parse_git_branch {
 }
 
 function rmdc {
-    for c in $(docker ps -a | awk 'NR>1 {print $1}'); do
-        docker rm $@ ${c}
-    done
+  for c in $(docker ps -a | awk 'NR>1 {print $1}'); do
+    docker rm $@ ${c}
+  done
 }
-
 
 ############
 # PS1      #
 ############
 
 if [ "$PS1" ]; then
-   if [ $UID -eq "0" ]; then
-      case "$TERM" in
-      xterm*|rxvt*|cygwin)
+  if [ $UID -eq "0" ]; then
+    case "$TERM" in
+      xterm* | rxvt* | cygwin)
         PS1='\n\[\e]2;\u@\h:\w\a\e[1m\e[31m\]\[\e[31m\]\u\[\e[37m\]@\[\e[35m\]\h\[\e[37m\]:\[\e[32m\]\w\[\e[33m\]\[\e[31m\] #\[\e[0m\] '
         ;;
       *)
         PS1='[\!]\u@\h \w# '
         ;;
-      esac
-   else
-      case "$TERM" in
-      xterm*|rxvt*|cygwin)
+    esac
+  else
+    case "$TERM" in
+      xterm* | rxvt* | cygwin)
         PS1='[\!]\[\e[1;32m\]\u\[\e[37m\]@\[\e[35m\]\h\[\e[37m\]:\[\e[36m\]\w\[\e[33m\]\[\e[33m\]>\[\e[0m\] \[\e[37m\]\[\e[0m\]'
         PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME%%.*}:${PWD/$HOME/~}\007"'
         ;;
-      *f)TH
+      *f)
+        TH
         PS1='[\!]\u@\h \w> '
         ;;
-      esac
-   fi
+    esac
+  fi
 fi
 export PS1
 
@@ -177,16 +177,43 @@ if [ -f '/Users/rusty/google-cloud-sdk/completion.bash.inc' ]; then . '/Users/ru
 
 # Git bash comp.
 if [ -f '/usr/local/git/contrib/completion/git-completion.bash' ]; then . '/usr/local/git/contrib/completion/git-completion.bash'; fi
-eval "$(rbenv init - bash)"
-export GOENV_ROOT="$HOME/.goenv"
-export PATH="$GOENV_ROOT/bin:$PATH"
-eval "$(goenv init -)"
-export PATH="$PATH:$GOPATH/bin"
-export PATH="$GOROOT/bin:$PATH"
-export GROOVY_HOME=/usr/local/opt/groovy/libexec
-alias v='stoken tokencode'
-PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
 
+if command -v gcloud 2>&1 > /dev/null; then
+  GCLOUD_VENV="$HOME/.virtualenvs/gcloud"
+  if [ -d "$GCLOUD_VENV" ]; then
+    export CLOUDSDK_PYTHON="$GCLOUD_VENV/bin/python3"
+    export CLOUDSDK_PYTHON_SITEPACKAGES=1
+  fi
+fi
 
-export HELM_EXPERIMENTAL_OCI=1
-source <(kubectl completion bash)
+if command -v rbenv 2>&1 > /dev/null; then
+  eval "$(rbenv init - bash)"
+fi
+if command -v goenv 2>&1 > /dev/null; then
+  eval "$(goenv init -)"
+fi
+if command -v nodenv 2>&1 > /dev/null; then
+  eval "$(nodenv init -)"
+fi
+if command -v pyenv 2>&1 > /dev/null; then
+  eval "$(pyenv init -)"
+fi
+
+if command -v go 2>&1 > /dev/null; then
+  export GOENV_ROOT="$HOME/.goenv"
+  export PATH="$GOENV_ROOT/bin:$PATH"
+  export PATH="$PATH:$GOPATH/bin"
+fi
+
+if [ -d "/usr/local/opt/coreutils/libexec/gnubin" ]; then
+  export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+fi
+
+if command -v helm 2>&1 > /dev/null; then
+  export HELM_EXPERIMENTAL_OCI=1
+fi
+
+if command -v kubectl 2>&1 > /dev/null; then
+  source <(kubectl completion bash)
+fi
+source ~/.bash_completions/gru.bash
