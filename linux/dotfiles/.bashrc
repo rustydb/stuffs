@@ -1,3 +1,4 @@
+#!/bin/bash
 #     dBBBBBb    dBP dB.dBBBBP dBBBBBBP dBP   dBP " .dBBBBP
 #         dBP   dBP dB BP        dBP     dP  dP  ' dBP
 #     dBBBBK'  dBP dBP `BBBBb   dBP      dBBP      BP`BBBBb
