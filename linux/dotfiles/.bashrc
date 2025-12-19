@@ -56,7 +56,13 @@ fi
 # Path #
 ########
 
-export PATH="$PATH:/usr/sbin:/sbin"
+if [[ ! "$PATH" =~ /sbin ]]; then
+  export PATH="$PATH:/sbin"
+fi
+if [[ ! "$PATH" =~ /usr/sbin ]]; then
+  export PATH="$PATH:/usr/sbin"
+fi
+
 if [[ -e "$HOME/.rbenv/bin" ]]; then
   export PATH="$HOME/.rbenv/bin:$PATH"
   eval "$(rbenv init -)"
