@@ -218,7 +218,7 @@ if command -v kubectl 2>&1 > /dev/null; then
 fi
 
 if [ -f "$HOME/.bash_completions/gru.bash" ]; then
-  source"$HOME/.bash_completions/gru.bash"
+  source "$HOME/.bash_completions/gru.bash"
 fi
 
 if [ -d "$HOME/.foundry/bin" ]; then
