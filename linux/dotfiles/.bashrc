@@ -216,7 +216,10 @@ fi
 if command -v kubectl 2>&1 > /dev/null; then
   source <(kubectl completion bash)
 fi
-source ~/.bash_completions/gru.bash
+
+if [ -f "$HOME/.bash_completions/gru.bash" ]; then
+  source"$HOME/.bash_completions/gru.bash"
+fi
 
 if [ -d "$HOME/.foundry/bin" ]; then
   export PATH="$PATH:$HOME/.foundry/bin"
