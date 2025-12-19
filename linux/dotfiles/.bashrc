@@ -68,11 +68,21 @@ if [[ -e "$HOME/.rbenv/bin" ]]; then
   export PATH="$HOME/.rbenv/bin:$PATH"
   eval "$(rbenv init -)"
 fi
+
 if [[ -e "~/.passwdrc" ]]; then
   source ~/.passwdrc
 fi
+
 if [[ -d "$HOME/apps/.bin" ]]; then
   export PATH="$HOME/apps/.bin:$PATH"
+fi
+
+if [ -d "/usr/local/opt/coreutils/libexec/gnubin" ]; then
+  export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+fi
+
+if [ -d "$HOME/.foundry/bin" ]; then
+  export PATH="$PATH:$HOME/.foundry/bin"
 fi
 
 ###########
@@ -212,10 +222,6 @@ if command -v go 2>&1 > /dev/null; then
   export PATH="$PATH:$GOPATH/bin"
 fi
 
-if [ -d "/usr/local/opt/coreutils/libexec/gnubin" ]; then
-  export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
-fi
-
 if command -v helm 2>&1 > /dev/null; then
   export HELM_EXPERIMENTAL_OCI=1
 fi
@@ -226,9 +232,5 @@ fi
 
 if [ -f "$HOME/.bash_completions/gru.bash" ]; then
   source "$HOME/.bash_completions/gru.bash"
-fi
-
-if [ -d "$HOME/.foundry/bin" ]; then
-  export PATH="$PATH:$HOME/.foundry/bin"
 fi
 
