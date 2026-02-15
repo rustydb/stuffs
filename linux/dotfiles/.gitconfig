@@ -1,6 +1,7 @@
 [user]
 	name = Russell Bunch
-	email = rbunch@4lambda.io
+	email = rusty@4lambda.io
+#    signingKey = 
 
 [push]
 	default = simple
@@ -20,6 +21,7 @@
 
 [commit]
 	template = /Users/rbunch/.stCommitMsg
+#    gpgsign = true
 
 [alias]
 	r = !GIT_NO_PAGER=1 git l -30
@@ -42,3 +44,5 @@
 	added = green
 	changed = yellow
 	untracked = magenta
+[advice]
+ 	detachedHead = false
