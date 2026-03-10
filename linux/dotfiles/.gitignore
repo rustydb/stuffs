@@ -1,6 +1,17 @@
+# MacOS Finder
+.DS_Store
+
+# VIM
+.*.s[a-w][a-z]
+
+# IntelliJ
 .idea/
 *.iml
-.*.s[a-w][a-z]
-.DS_Store
+
+# Visual studio
+.vscode/
+.code-workspace/
+
+# Misc
 venv/
 secrets*
