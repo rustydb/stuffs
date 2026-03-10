@@ -88,3 +88,6 @@ autocmd FileType yml setlocal ts=4 sts=0 sw=2 et ai
 au BufRead,BufNewFile *.pde set filetype=arduino
 au BufRead,BufNewFile *.ino set filetype=arduino
 
+" Highlight trailing whitespace
+highlight RedundantSpaces ctermbg=red guibg=red
+match RedundantSpaces /\s\+$/

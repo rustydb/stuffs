@@ -74,15 +74,48 @@ if [[ -e "~/.passwdrc" ]]; then
 fi
 
 if [[ -d "$HOME/apps/.bin" ]]; then
-  export PATH="$HOME/apps/.bin:$PATH"
+  if [[ ! "$PATH" =~ $HOME/apps/.bin ]]; then
+    export PATH="$HOME/apps/.bin:$PATH"
+  fi
 fi
 
 if [ -d "/usr/local/opt/coreutils/libexec/gnubin" ]; then
-  export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+  if [[ ! "$PATH" =~ /usr/local/opt/coreutils/libexec/gnubin ]]; then
+    export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+  fi
 fi
 
 if [ -d "$HOME/.foundry/bin" ]; then
-  export PATH="$PATH:$HOME/.foundry/bin"
+  if [[ ! "$PATH" =~ $HOME/.foundry/bin ]]; then
+    export PATH="$PATH:$HOME/.foundry/bin"
+  fi
+fi
+
+if [ -d "$HOME/.goenv" ]; then
+  export GOENV_ROOT="$HOME/.goenv"
+  if [[ ! "$PATH" =~ $GOENV_ROOT/bin ]]; then
+    export PATH="$GOENV_ROOT/bin:$PATH"
+  fi
+fi
+
+if [ -d "$HOME/.nvm" ]; then
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+fi
+
+if [ ! -d "$HOME/bin" ]; then
+  mkdir -p "$HOME/bin"
+fi
+if [[ ! "$PATH" =~ $HOME/bin ]]; then
+  export PATH="$PATH:$HOME/bin"
+fi
+
+if [ ! -d "$HOME/.local/bin" ]; then
+  mkdir -p "$HOME/.local/bin"
+fi
+if [[ ! "$PATH" =~ $HOME/.local/bin ]]; then
+  export PATH="$PATH:$HOME/.local/bin"
 fi
 
 ###########
@@ -209,17 +242,9 @@ fi
 if command -v goenv 2>&1 > /dev/null; then
   eval "$(goenv init -)"
 fi
-if command -v nodenv 2>&1 > /dev/null; then
-  eval "$(nodenv init -)"
-fi
+
 if command -v pyenv 2>&1 > /dev/null; then
   eval "$(pyenv init -)"
-fi
-
-if command -v go 2>&1 > /dev/null; then
-  export GOENV_ROOT="$HOME/.goenv"
-  export PATH="$GOENV_ROOT/bin:$PATH"
-  export PATH="$PATH:$GOPATH/bin"
 fi
 
 if command -v helm 2>&1 > /dev/null; then
@@ -234,3 +259,12 @@ if [ -f "$HOME/.bash_completions/gru.bash" ]; then
   source "$HOME/.bash_completions/gru.bash"
 fi
 
+ROOTLESS_DOCKER_SOCKET="/run/user/$(id -u)/docker.sock"
+if [ -S "$ROOTLESS_DOCKER_SOCKET" ]; then
+  export DOCKER_HOST="unix://$ROOTLESS_DOCKER_SOCKET"
+  echo "Rootless docker detected. Setting DOCKER_HOST to $DOCKER_HOST"
+fi
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
