@@ -34,8 +34,25 @@ fi
 if [[ -f "$BREW_PREFIX/etc/bash_completion" ]]; then
   . "$BREW_PREFIX/etc/bash_completion"
 fi
-if [[ -e "$HOME/.local/git-completion.bash" ]]; then
-  . "$HOME/.local/git-completion.bash"
+
+COMPLETION_DIR="$HOME/.local/completions/bash/"
+
+# git
+if [[ -e "$COMPLETION_DIR/git-completion.sh" ]]; then
+  . "$COMPLETION_DIR/git-completion.sh"
+fi
+
+# sui
+if [[ -e "$COMPLETION_DIR/sui-completion.sh" ]]; then
+  . "$COMPLETION_DIR/sui-completion.sh"
+fi
+
+# Rust/cargo
+if [[ -e "$COMPLETION_DIR/cargo-completion.sh" ]]; then
+  . "$COMPLETION_DIR/cargo-completion.sh"
+fi
+if [[ -e "$COMPLETION_DIR/rustup-completion.sh" ]]; then
+  . "$COMPLETION_DIR/rustup-completion.sh"
 fi
 
 # Checks to see if on FreeBSD or linux
@@ -118,6 +135,22 @@ if [[ ! "$PATH" =~ $HOME/.local/bin ]]; then
   export PATH="$PATH:$HOME/.local/bin"
 fi
 
+# bun
+if [ -d "$HOME/.bun" ]; then
+  export BUN_INSTALL="$HOME/.bun"
+  if [[ ! "$PATH" =~ "$HOME/.bun" ]]; then
+    export PATH="$BUN_INSTALL/bin:$PATH"
+  fi
+fi
+
+# pnpm
+export PNPM_HOME="/home/rusty/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+
+# pnpm end
 ###########
 # Aliases #
 ###########
@@ -271,3 +304,14 @@ export NVM_DIR="$HOME/.nvm"
 
 # For GPG Signing in git.
 export GPG_TTY=$(tty)
+
+if ! command -v docker 2>&1 >/dev/null ; then
+  if command -v podman 2>&1 >/dev/null ; then
+    alias docker=podman
+  fi
+fi
+
+if [ -f "$HOME/.cargo/env" ]; then
+  . "$HOME/.cargo/env"
+fi
+
