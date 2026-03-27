@@ -1,7 +1,7 @@
 [user]
 	name = Russell Bunch
 	email = rusty@4lambda.io
-#    signingKey = 
+#	signingkey =
 
 [push]
 	default = simple
@@ -9,18 +9,9 @@
 [core]
 	autocrlf = input
 	editor = vim
-	excludesfile = /Users/rbunch/.gitignore
-
-[difftool "sourcetree"]
-	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path = 
-
-[mergetool "sourcetree"]
-	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
-	trustExitCode = true
+	excludesfile = /home/rusty/.gitignore
 
 [commit]
-	template = /Users/rbunch/.stCommitMsg
 #    gpgsign = true
 
 [alias]
@@ -46,3 +37,6 @@
 	untracked = magenta
 [advice]
  	detachedHead = false
+[tag]
+# Note: gpgSign on tags forces annotated tags
+#	gpgSign = true
