@@ -1,0 +1,4 @@
+#!/bin/bash
+dockerfile="$1"
+shift
+podman run --rm -i docker.io/hadolint/hadolint hadolint "$@" - < "$dockerfile"
