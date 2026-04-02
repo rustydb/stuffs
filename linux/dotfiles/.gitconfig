@@ -1,22 +1,28 @@
 [user]
 	name = Russell Bunch
 	email = rusty@4lambda.io
-#	signingkey =
+    signingKey = 232CA927AC960625
+
+[commit]
+	template = ~/.stCommitMsg
+	gpgsign = true
+
+[includeIf "gitdir:~/gitstuffs/work/"]
+    path = ~/.gitconfig-hpe
 
 [push]
 	default = simple
+	autoSetupRemote = true
 
 [core]
 	autocrlf = input
 	editor = vim
-	excludesfile = /home/rusty/.gitignore
-
-[commit]
-#    gpgsign = true
+	excludesfile = ~/.gitignore
 
 [alias]
 	r = !GIT_NO_PAGER=1 git l -30
 	l = "!. ~/.githelpers && pretty_git_log"
+
 [color]
 	ui = auto
 
@@ -35,8 +41,6 @@
 	added = green
 	changed = yellow
 	untracked = magenta
+
 [advice]
- 	detachedHead = false
-[tag]
-# Note: gpgSign on tags forces annotated tags
-#	gpgSign = true
+	detachedHead = false

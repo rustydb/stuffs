@@ -1,0 +1,7 @@
+[user]
+	email = doomslayer@hpe.com
+	signingKey = CC4AB124B7B52A26
+
+[core]
+    sshCommand = "ssh -o IdentitiesOnly=yes -i ~/.ssh/hpe_id_ed25519"
+
