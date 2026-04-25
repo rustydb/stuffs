@@ -91,3 +91,6 @@ au BufRead,BufNewFile *.ino set filetype=arduino
 " Highlight trailing whitespace
 highlight RedundantSpaces ctermbg=red guibg=red
 match RedundantSpaces /\s\+$/
+
+" Extra git configs
+autocmd BufRead,BufNewFile *.gitconfig-* set filetype=gitconfig
